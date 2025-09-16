@@ -136,10 +136,7 @@ export default function IngredientDetection({
           {t('ingredients.detected')}
         </h2>
         <p className="text-gray-600">
-          {t('ingredients.detected.subtitle', { 
-            count: ingredients.length, 
-            plural: ingredients.length > 1 ? 's' : '' 
-          })}
+          {t('ingredients.detected.subtitle').replace('{count}', ingredients.length.toString()).replace('{plural}', ingredients.length > 1 ? 's' : '')}
         </p>
         <p className="text-sm text-gray-500 mt-2">
           {t('ingredients.confidence')}
