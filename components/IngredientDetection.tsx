@@ -106,7 +106,7 @@ export default function IngredientDetection({
               <span className="text-sm font-medium">Information importante</span>
             </div>
             <p className="text-sm text-orange-600">
-              L&apos;API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.
+              L'API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.
             </p>
           </div>
         )}
@@ -136,7 +136,10 @@ export default function IngredientDetection({
           {t('ingredients.detected')}
         </h2>
         <p className="text-gray-600">
-          {ingredients.length} ingrédient{ingredients.length > 1 ? 's' : ''} détecté{ingredients.length > 1 ? 's' : ''}
+          {t('ingredients.detected.subtitle', { 
+            count: ingredients.length, 
+            plural: ingredients.length > 1 ? 's' : '' 
+          })}
         </p>
         <p className="text-sm text-gray-500 mt-2">
           {t('ingredients.confidence')}

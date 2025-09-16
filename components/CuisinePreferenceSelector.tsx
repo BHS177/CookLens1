@@ -305,7 +305,7 @@ export default function CuisinePreferenceSelector({
                 />
                 <div>
                   <div className="font-medium">Pays spécifique</div>
-                  <div className="text-sm text-gray-600">Cuisine d&apos;un pays particulier</div>
+                  <div className="text-sm text-gray-600">Cuisine d'un pays particulier</div>
                 </div>
               </label>
             </div>

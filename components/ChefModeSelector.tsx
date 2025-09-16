@@ -81,7 +81,7 @@ export default function ChefModeSelector({ mode, onModeSelect }: ChefModeSelecto
           <div className="flex items-center space-x-2 text-green-700">
             <Heart className="w-5 h-5" />
             <span className="font-medium">
-              Focus sur la santé et l&apos;équilibre nutritionnel
+              Focus sur la santé et l'équilibre nutritionnel
             </span>
           </div>
           <p className="text-sm text-green-600 mt-1">

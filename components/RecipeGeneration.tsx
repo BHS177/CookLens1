@@ -35,7 +35,7 @@ export default function RecipeGeneration({
         onLoadingChange(true)
         setError(null)
         
-        const recipe = await generateRecipe(ingredients, preferences)
+        const recipe = await generateRecipe(ingredients, preferences, chefMode, selectedCountry)
         onRecipeGenerated(recipe)
       } catch (err) {
         console.error('Erreur lors de la génération:', err)
@@ -47,7 +47,7 @@ export default function RecipeGeneration({
     }
 
     generateRecipeData()
-  }, [ingredients, preferences, onRecipeGenerated, onLoadingChange, chefMode, selectedCountry])
+  }, [ingredients, preferences, onRecipeGenerated, onLoadingChange])
 
   if (loading) {
     return (
@@ -62,12 +62,12 @@ export default function RecipeGeneration({
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           {chefMode === 'expert' ? t('recipe.generating.expert') : 
-           chefMode === 'country' ? `Génération de recettes ${selectedCountry}` : 
+           chefMode === 'country' ? t('recipe.generating.country', { country: selectedCountry }) : 
            t('recipe.generating.simple')}
         </h3>
         <p className="text-gray-600 mb-4">
           {chefMode === 'expert' ? t('recipe.generating.subtitle.expert') :
-           chefMode === 'country' ? `Création de recettes authentiques de ${selectedCountry}` :
+           chefMode === 'country' ? t('recipe.generating.subtitle.country', { country: selectedCountry }) :
            t('recipe.generating.subtitle.simple')}
         </p>
         
