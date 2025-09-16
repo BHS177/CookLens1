@@ -136,10 +136,7 @@ export default function IngredientDetection({
           {t('ingredients.detected')}
         </h2>
         <p className="text-gray-600">
-          {t('ingredients.detected.subtitle', { 
-            count: ingredients.length, 
-            plural: ingredients.length > 1 ? 's' : '' 
-          })}
+          {ingredients.length} ingrédient{ingredients.length > 1 ? 's' : ''} détecté{ingredients.length > 1 ? 's' : ''}
         </p>
         <p className="text-sm text-gray-500 mt-2">
           {t('ingredients.confidence')}
