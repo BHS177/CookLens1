@@ -9,10 +9,7 @@
     }
   },
   "env": {
-    "NEXT_PUBLIC_LOGMEAL_API_URL": "@logmeal_api_url",
-    "LOGMEAL_API_TOKEN": "@logmeal_api_token",
-    "NEXT_PUBLIC_CHEFGPT_API_URL": "@chefgpt_api_url",
-    "CHEFGPT_API_KEY": "@chefgpt_api_key"
+    "OPENAI_API_KEY": "@openai_api_key"
   },
   "headers": [
     {

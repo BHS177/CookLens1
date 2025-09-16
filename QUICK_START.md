@@ -53,7 +53,7 @@ L'application fonctionne en mode démo avec des données fictives si les APIs ne
 2. Obtenez votre token API
 3. Ajoutez dans `.env.local` :
 ```env
-LOGMEAL_API_TOKEN=votre_token_ici
+OPENAI_API_KEY=votre_token_openai_ici
 ```
 
 ### Configuration ChefGPT

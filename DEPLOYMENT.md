@@ -43,10 +43,7 @@ Ce guide vous accompagne pour déployer l'application Fridge AI sur Vercel.
    - Dans le dashboard Vercel, allez dans Settings > Environment Variables
    - Ajoutez les variables suivantes :
      ```
-     LOGMEAL_API_TOKEN=votre_token_logmeal
-     CHEFGPT_API_KEY=votre_cle_chefgpt
-     NEXT_PUBLIC_LOGMEAL_API_URL=https://api.logmeal.es/v2/image/segmentation/complete
-     NEXT_PUBLIC_CHEFGPT_API_URL=https://api.chefgpt.com/v1/recipes
+     OPENAI_API_KEY=votre_token_openai
      NEXT_PUBLIC_APP_URL=https://votre-app.vercel.app
      ```
 
@@ -74,10 +71,7 @@ Ce guide vous accompagne pour déployer l'application Fridge AI sur Vercel.
 
 4. **Configurez les variables d'environnement**
    ```bash
-   vercel env add LOGMEAL_API_TOKEN
-   vercel env add CHEFGPT_API_KEY
-   vercel env add NEXT_PUBLIC_LOGMEAL_API_URL
-   vercel env add NEXT_PUBLIC_CHEFGPT_API_URL
+   vercel env add OPENAI_API_KEY
    vercel env add NEXT_PUBLIC_APP_URL
    ```
 
