@@ -42,13 +42,8 @@ Une application React moderne avec Next.js 14 qui utilise l'IA pour détecter le
    
    Puis éditer `.env.local` avec vos clés API :
    ```env
-   # LogMeal API Configuration
-   NEXT_PUBLIC_LOGMEAL_API_URL=https://api.logmeal.es/v2/image/segmentation/complete
-   LOGMEAL_API_TOKEN=your_logmeal_api_token_here
-
-   # ChefGPT API Configuration
-   NEXT_PUBLIC_CHEFGPT_API_URL=https://api.chefgpt.com/v1/recipes
-   CHEFGPT_API_KEY=your_chefgpt_api_key_here
+   # OpenAI API Configuration
+   OPENAI_API_KEY=your_openai_api_key_here
 
    # App Configuration
    NEXT_PUBLIC_APP_URL=http://localhost:3000
