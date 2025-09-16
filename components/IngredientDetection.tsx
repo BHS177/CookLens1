@@ -106,7 +106,7 @@ export default function IngredientDetection({
               <span className="text-sm font-medium">Information importante</span>
             </div>
             <p className="text-sm text-orange-600">
-              L'API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.
+              L&apos;API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.
             </p>
           </div>
         )}
