@@ -35,7 +35,7 @@ export default function RecipeGeneration({
         onLoadingChange(true)
         setError(null)
         
-        const recipe = await generateRecipe(ingredients, preferences, chefMode, selectedCountry)
+        const recipe = await generateRecipe(ingredients, preferences)
         onRecipeGenerated(recipe)
       } catch (err) {
         console.error('Erreur lors de la génération:', err)
