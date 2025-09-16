@@ -47,7 +47,7 @@ export default function RecipeGeneration({
     }
 
     generateRecipeData()
-  }, [ingredients, preferences, onRecipeGenerated, onLoadingChange])
+  }, [ingredients, preferences, onRecipeGenerated, onLoadingChange, chefMode, selectedCountry])
 
   if (loading) {
     return (
