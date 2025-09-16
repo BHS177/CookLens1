@@ -62,12 +62,12 @@ export default function RecipeGeneration({
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           {chefMode === 'expert' ? t('recipe.generating.expert') : 
-           chefMode === 'country' ? t('recipe.generating.country', { country: selectedCountry }) : 
+           chefMode === 'country' ? `Génération de recettes ${selectedCountry}` : 
            t('recipe.generating.simple')}
         </h3>
         <p className="text-gray-600 mb-4">
           {chefMode === 'expert' ? t('recipe.generating.subtitle.expert') :
-           chefMode === 'country' ? t('recipe.generating.subtitle.country', { country: selectedCountry }) :
+           chefMode === 'country' ? `Création de recettes authentiques de ${selectedCountry}` :
            t('recipe.generating.subtitle.simple')}
         </p>
         
