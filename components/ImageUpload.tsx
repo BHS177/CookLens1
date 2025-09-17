@@ -198,7 +198,7 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
               
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Glissez-déposez votre image ici
+                  {t('upload.drag.title')}
                 </h3>
                 <p className="text-gray-600 mb-6">
                   {t('home.upload.subtitle')}
@@ -224,9 +224,9 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
               </div>
               
               <div className="text-sm text-gray-500 space-y-1">
-                <p>Formats supportés: JPG, PNG, WebP (max 10MB)</p>
+                <p>{t('upload.formats')}</p>
                 <p className="text-xs text-green-600 font-medium">
-                  ✨ Qualité optimisée automatiquement pour une meilleure détection
+                  {t('upload.optimized')}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
                   💡 {t('home.upload.mobileTip')}
@@ -237,13 +237,13 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
               {onSkipDetection && (
                 <div className="pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600 mb-3">
-                    Ou ajoutez vos ingrédients manuellement
+                    {t('upload.skip.title')}
                   </p>
                   <button
                     onClick={onSkipDetection}
                     className="text-primary-600 hover:text-primary-700 text-sm font-medium underline transition-colors duration-200"
                   >
-                    Ajouter les ingrédients manuellement →
+                    {t('upload.skip.button')}
                   </button>
                 </div>
               )}
@@ -268,7 +268,7 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
             
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600 mb-4">
-                Image prête pour l&apos;analyse
+                {t('upload.ready')}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button

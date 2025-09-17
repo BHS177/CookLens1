@@ -69,19 +69,38 @@ export default function CuisinePreferenceSelector({
   ]
 
   const dietOptions = [
-    'omnivore', 'végétarien', 'végétalien', 'pescétarien', 'paléo', 'cétogène',
-    'sans gluten', 'halal', 'casher', 'low-carb', 'sans lactose'
+    { value: 'omnivore', label: t('preferences.diet.omnivore') },
+    { value: 'végétarien', label: t('preferences.diet.vegetarian') },
+    { value: 'végétalien', label: t('preferences.diet.vegan') },
+    { value: 'pescétarien', label: t('preferences.diet.pescatarian') },
+    { value: 'paléo', label: t('preferences.diet.paleo') },
+    { value: 'cétogène', label: t('preferences.diet.keto') },
+    { value: 'sans gluten', label: t('preferences.diet.gluten-free') },
+    { value: 'halal', label: t('preferences.diet.halal') },
+    { value: 'casher', label: t('preferences.diet.kosher') },
+    { value: 'low-carb', label: t('preferences.diet.low-carb') },
+    { value: 'sans lactose', label: t('preferences.diet.lactose-free') }
   ]
 
   const allergyOptions = [
-    'gluten', 'lactose', 'noix', 'arachides', 'œufs', 'poisson', 'crustacés',
-    'soja', 'sésame', 'moutarde', 'céleri', 'sulfites'
+    { value: 'gluten', label: t('preferences.allergies.gluten') },
+    { value: 'lactose', label: t('preferences.allergies.lactose') },
+    { value: 'noix', label: t('preferences.allergies.nuts') },
+    { value: 'arachides', label: t('preferences.allergies.peanuts') },
+    { value: 'œufs', label: t('preferences.allergies.eggs') },
+    { value: 'poisson', label: t('preferences.allergies.fish') },
+    { value: 'crustacés', label: t('preferences.allergies.shellfish') },
+    { value: 'soja', label: t('preferences.allergies.soy') },
+    { value: 'sésame', label: t('preferences.allergies.sesame') },
+    { value: 'moutarde', label: t('preferences.allergies.mustard') },
+    { value: 'céleri', label: t('preferences.allergies.celery') },
+    { value: 'sulfites', label: t('preferences.allergies.sulfites') }
   ]
 
   const difficultyOptions = [
-    { value: 'facile', label: 'Facile', description: 'Recettes simples et rapides' },
-    { value: 'moyen', label: 'Moyen', description: 'Recettes avec quelques techniques' },
-    { value: 'difficile', label: 'Difficile', description: 'Recettes complexes et techniques' }
+    { value: 'facile', label: t('preferences.difficulty.easy'), description: t('preferences.difficulty.easy.desc') },
+    { value: 'moyen', label: t('preferences.difficulty.medium'), description: t('preferences.difficulty.medium.desc') },
+    { value: 'difficile', label: t('preferences.difficulty.hard'), description: t('preferences.difficulty.hard.desc') }
   ]
 
   // Ingredient management functions
@@ -192,25 +211,25 @@ export default function CuisinePreferenceSelector({
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Personnalisez vos recettes
+          {t('preferences.title')}
         </h2>
         <p className="text-gray-600 text-lg">
-          Dites-nous vos préférences pour des suggestions parfaites
+          {t('preferences.subtitle')}
         </p>
       </div>
 
       {/* Editable Ingredients */}
       <div className="bg-gray-50 rounded-xl p-6">
         <h3 className="font-semibold text-gray-900 mb-4">
-          {editableIngredients.length > 0 ? 'Ingrédients détectés :' : 'Ajoutez vos ingrédients :'}
+          {editableIngredients.length > 0 ? t('preferences.ingredients.detected') : t('preferences.ingredients.add')}
         </h3>
         
         {/* Ingredients List */}
         <div className="flex flex-wrap gap-2 mb-4">
           {editableIngredients.length === 0 && (
             <div className="w-full text-center py-8 text-gray-500">
-              <p className="text-sm mb-2">Aucun ingrédient ajouté pour le moment</p>
-              <p className="text-xs">Utilisez le champ ci-dessous pour ajouter vos ingrédients</p>
+              <p className="text-sm mb-2">{t('preferences.ingredients.empty')}</p>
+              <p className="text-xs">{t('preferences.ingredients.empty.subtitle')}</p>
             </div>
           )}
           {editableIngredients.map((ingredient) => (
@@ -266,7 +285,7 @@ export default function CuisinePreferenceSelector({
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Ajouter un ingrédient..."
+            placeholder={t('preferences.ingredients.add.placeholder')}
             value={newIngredient}
             onChange={(e) => setNewIngredient(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
@@ -277,7 +296,7 @@ export default function CuisinePreferenceSelector({
             className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-1"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm">Ajouter</span>
+            <span className="text-sm">{t('common.add')}</span>
           </button>
         </div>
       </div>
@@ -289,7 +308,7 @@ export default function CuisinePreferenceSelector({
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <ChefHat className="w-5 h-5 mr-2 text-primary-600" />
-              Mode Chef
+              {t('preferences.chef.title')}
             </h3>
             <div className="space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
@@ -302,8 +321,8 @@ export default function CuisinePreferenceSelector({
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
-                  <div className="font-medium">Simple</div>
-                  <div className="text-sm text-gray-600">Recettes faciles et rapides</div>
+                  <div className="font-medium">{t('preferences.chef.simple')}</div>
+                  <div className="text-sm text-gray-600">{t('preferences.chef.simple.desc')}</div>
                 </div>
               </label>
               
@@ -317,8 +336,8 @@ export default function CuisinePreferenceSelector({
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
-                  <div className="font-medium">Expert</div>
-                  <div className="text-sm text-gray-600">Meilleures recettes du monde</div>
+                  <div className="font-medium">{t('preferences.chef.expert')}</div>
+                  <div className="text-sm text-gray-600">{t('preferences.chef.expert.desc')}</div>
                 </div>
               </label>
               
@@ -332,8 +351,8 @@ export default function CuisinePreferenceSelector({
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
-                  <div className="font-medium">Pays spécifique</div>
-                  <div className="text-sm text-gray-600">Cuisine d&apos;un pays particulier</div>
+                  <div className="font-medium">{t('preferences.chef.country')}</div>
+                  <div className="text-sm text-gray-600">{t('preferences.chef.country.desc')}</div>
                 </div>
               </label>
             </div>
@@ -352,7 +371,7 @@ export default function CuisinePreferenceSelector({
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Tapez pour rechercher un pays..."
+                    placeholder={t('preferences.country.search')}
                     value={countrySearch}
                     onChange={(e) => setCountrySearch(e.target.value)}
                     className="w-full p-3 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -376,7 +395,7 @@ export default function CuisinePreferenceSelector({
                   onChange={(e) => handleCountryChange(e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
-                  <option value="">Sélectionnez un pays</option>
+                  <option value="">{t('preferences.country.select')}</option>
                   {filteredCountries.map((country) => (
                     <option key={country} value={country}>
                       {country}
@@ -474,7 +493,7 @@ export default function CuisinePreferenceSelector({
           {/* Difficulty Selection */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Niveau de difficulté
+              {t('preferences.difficulty.title')}
             </h3>
             <div className="space-y-3">
               {difficultyOptions.map((option) => (
@@ -497,18 +516,18 @@ export default function CuisinePreferenceSelector({
           {/* Diet Selection */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Régime alimentaire
+              {t('preferences.diet.title')}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {dietOptions.map((dietOption) => (
-                <label key={dietOption} className="flex items-center space-x-2 cursor-pointer">
+                <label key={dietOption.value} className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={diet.includes(dietOption)}
-                    onChange={() => toggleArrayItem(diet, setDiet, dietOption)}
+                    checked={diet.includes(dietOption.value)}
+                    onChange={() => toggleArrayItem(diet, setDiet, dietOption.value)}
                     className="w-4 h-4 text-primary-600 rounded"
                   />
-                  <span className="text-sm capitalize">{dietOption}</span>
+                  <span className="text-sm">{dietOption.label}</span>
                 </label>
               ))}
             </div>
@@ -517,18 +536,18 @@ export default function CuisinePreferenceSelector({
           {/* Allergies */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Allergies
+              {t('preferences.allergies.title')}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {allergyOptions.map((allergy) => (
-                <label key={allergy} className="flex items-center space-x-2 cursor-pointer">
+                <label key={allergy.value} className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={allergies.includes(allergy)}
-                    onChange={() => toggleArrayItem(allergies, setAllergies, allergy)}
+                    checked={allergies.includes(allergy.value)}
+                    onChange={() => toggleArrayItem(allergies, setAllergies, allergy.value)}
                     className="w-4 h-4 text-primary-600 rounded"
                   />
-                  <span className="text-sm capitalize">{allergy}</span>
+                  <span className="text-sm">{allergy.label}</span>
                 </label>
               ))}
             </div>
@@ -541,7 +560,7 @@ export default function CuisinePreferenceSelector({
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center space-x-2 text-red-800">
             <AlertCircle className="w-5 h-5" />
-            <span className="font-medium">Veuillez sélectionner un pays pour continuer</span>
+            <span className="font-medium">{t('preferences.errors.country.required')}</span>
           </div>
         </div>
       )}
@@ -553,14 +572,14 @@ export default function CuisinePreferenceSelector({
           className="btn-secondary flex items-center space-x-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Retour</span>
+          <span>{t('common.back')}</span>
         </button>
         
         <button
           onClick={handleContinue}
           className="btn-primary flex items-center space-x-2"
         >
-          <span>Générer les suggestions</span>
+          <span>{t('preferences.actions.generate')}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

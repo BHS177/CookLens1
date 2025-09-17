@@ -74,10 +74,10 @@ export default function IngredientDetection({
           <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Analyse de votre image...
+          {t('detection.analyzing')}
         </h3>
         <p className="text-gray-600">
-          L&apos;IA ChatGPT analyse votre frigo pour détecter les ingrédients
+          {t('detection.analyzing.subtitle')}
         </p>
       </motion.div>
     )
@@ -95,7 +95,7 @@ export default function IngredientDetection({
           <AlertCircle className="w-8 h-8 text-red-600" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {isApiUnavailable ? 'API ChatGPT Indisponible' : 'Erreur d\'analyse'}
+          {isApiUnavailable ? t('detection.error.api') : t('detection.error.title')}
         </h3>
         <p className="text-gray-600 mb-4">{error}</p>
         
@@ -103,10 +103,10 @@ export default function IngredientDetection({
           <div className="mb-4 p-4 bg-orange-50 border border-orange-200 rounded-xl">
             <div className="flex items-center justify-center space-x-2 text-orange-700 mb-2">
               <Info className="w-4 h-4" />
-              <span className="text-sm font-medium">Information importante</span>
+              <span className="text-sm font-medium">{t('detection.api.info')}</span>
             </div>
             <p className="text-sm text-orange-600">
-              L&apos;API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.
+              {t('detection.api.limit')}
             </p>
           </div>
         )}
@@ -115,7 +115,7 @@ export default function IngredientDetection({
           onClick={() => window.location.reload()}
           className="btn-primary"
         >
-          Réessayer
+{t('detection.error.retry')}
         </button>
       </motion.div>
     )

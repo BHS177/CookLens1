@@ -21,6 +21,7 @@ import {
 import { Recipe, DetectedIngredient, UserPreferences } from '@/types'
 import { generateRecipeSuggestions, generateDetailedRecipe } from '@/lib/api'
 import { formatTime, formatDifficulty, formatCuisine, formatDiet } from '@/lib/utils'
+import { useLanguage } from '@/contexts/LanguageContext'
 import ChatGPTLive from './ChatGPTLive'
 
 interface RecipeGeneratorProps {
@@ -36,6 +37,7 @@ export default function RecipeGenerator({
   onBack, 
   onLoadingChange 
 }: RecipeGeneratorProps) {
+  const { t } = useLanguage()
   const [suggestions, setSuggestions] = useState<any[]>([])
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -311,24 +313,24 @@ export default function RecipeGenerator({
       {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Générer des recettes personnalisées
+          {t('recipe.title')}
         </h2>
         <p className="text-lg text-gray-600 mb-6">
-          Basées sur vos ingrédients détectés et vos préférences
+          {t('recipe.subtitle')}
         </p>
         
         <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500 mb-8">
           <div className="flex items-center space-x-1">
             <ChefHat className="w-4 h-4" />
-            <span>Mode: {preferences.chefMode === 'expert' ? 'Expert' : preferences.chefMode === 'country' ? `Pays: ${preferences.selectedCountry}` : 'Simple'}</span>
+            <span>{t('recipe.mode')}: {preferences.chefMode === 'expert' ? t('recipe.mode.expert') : preferences.chefMode === 'country' ? `${t('recipe.mode.country')}: ${preferences.selectedCountry}` : t('recipe.mode.simple')}</span>
           </div>
           <div className="flex items-center space-x-1">
             <Clock className="w-4 h-4" />
-            <span>Temps: {preferences.maxPrepTime + preferences.maxCookTime} min</span>
+            <span>{t('recipe.time')}: {preferences.maxPrepTime + preferences.maxCookTime} min</span>
           </div>
           <div className="flex items-center space-x-1">
             <Users className="w-4 h-4" />
-            <span>Régime: {preferences.diet.join(', ')}</span>
+            <span>{t('recipe.diet')}: {preferences.diet.join(', ')}</span>
           </div>
         </div>
 
@@ -340,12 +342,12 @@ export default function RecipeGenerator({
           {isGenerating ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              <span>Génération en cours...</span>
+              <span>{t('recipe.generating')}</span>
             </>
           ) : (
             <>
               <ChefHat className="w-5 h-5" />
-              <span>Générer les suggestions</span>
+              <span>{t('recipe.generate.button')}</span>
             </>
           )}
         </button>
