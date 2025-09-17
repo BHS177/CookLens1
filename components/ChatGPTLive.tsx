@@ -40,6 +40,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   const [isProcessingVoice, setIsProcessingVoice] = useState(false)
   const [isVoiceActive, setIsVoiceActive] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
+  const [lastProcessedTime, setLastProcessedTime] = useState(0)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -67,23 +68,24 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }, [isOpen, recipe])
 
   // Effect to ensure continuous voice recognition in phone mode
-  useEffect(() => {
-    if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice && !isRestarting) {
-      setIsRestarting(true)
-      const timeoutId = setTimeout(() => {
-        if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice) {
-          console.log('🎤 Auto-restarting voice recognition...')
-          startVoiceRecognition()
-        }
-        setIsRestarting(false)
-      }, 3000) // Increased delay to prevent conflicts
+  // Disabled to prevent conflicts with speakText restart logic
+  // useEffect(() => {
+  //   if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice && !isRestarting) {
+  //     setIsRestarting(true)
+  //     const timeoutId = setTimeout(() => {
+  //       if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice) {
+  //         console.log('🎤 Auto-restarting voice recognition...')
+  //         startVoiceRecognition()
+  //       }
+  //       setIsRestarting(false)
+  //     }, 3000) // Increased to 3 seconds to prevent rapid cycling
 
-      return () => {
-        clearTimeout(timeoutId)
-        setIsRestarting(false)
-      }
-    }
-  }, [chatMode, isVoiceActive, isListening, isSpeaking, isProcessingVoice])
+  //     return () => {
+  //       clearTimeout(timeoutId)
+  //       setIsRestarting(false)
+  //     }
+  //   }
+  // }, [chatMode, isVoiceActive, isListening, isSpeaking, isProcessingVoice])
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
@@ -162,8 +164,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
     recognitionRef.current = new SpeechRecognition()
     recognitionRef.current.continuous = chatMode === 'phone'
-    recognitionRef.current.interimResults = false
+    recognitionRef.current.interimResults = true // Enable interim results for better accuracy
     recognitionRef.current.lang = 'fr-FR'
+    recognitionRef.current.maxAlternatives = 3 // Get multiple alternatives
 
     recognitionRef.current.onstart = () => {
       setIsListening(true)
@@ -172,14 +175,52 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     }
 
     recognitionRef.current.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript
-      console.log('🎤 Transcript:', transcript)
-      setInputMessage(transcript)
+      console.log('🎤 Raw results:', event.results)
       
-      if (chatMode === 'phone') {
-        processVoiceConversation(transcript)
+      // Get the final result (not interim)
+      const finalResults = Array.from(event.results).filter((result: any) => result.isFinal)
+      
+      if (finalResults.length > 0) {
+        const result = finalResults[0]
+        const transcript = result[0].transcript
+        const confidence = result[0].confidence
+        
+        console.log('🎤 Final transcript:', transcript)
+        console.log('🎤 Confidence:', confidence)
+        
+        // Only process if we have a meaningful transcript with good confidence
+        if (transcript && transcript.trim().length > 0 && confidence > 0.5) {
+          const currentTime = Date.now()
+          
+          // Prevent processing the same transcript too quickly or if it's too short
+          if (currentTime - lastProcessedTime > 2000 && transcript.trim().length > 3) {
+            console.log('🎤 Processing new transcript:', transcript)
+            setLastProcessedTime(currentTime)
+            setInputMessage(transcript)
+            
+            // Stop recognition immediately to prevent loops
+            if (recognitionRef.current) {
+              recognitionRef.current.stop()
+            }
+            
+            if (chatMode === 'phone') {
+              processVoiceConversation(transcript)
+            } else {
+              sendMessage(transcript)
+            }
+          } else {
+            console.log('🎤 Transcript too soon, too short, or low quality, ignoring...', { 
+              transcript, 
+              timeSinceLast: currentTime - lastProcessedTime,
+              length: transcript.trim().length,
+              confidence 
+            })
+          }
+        } else {
+          console.log('🎤 Low confidence or empty transcript, ignoring...', { transcript, confidence })
+        }
       } else {
-        sendMessage(transcript)
+        console.log('🎤 No final results yet, waiting...')
       }
     }
 
@@ -188,17 +229,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setIsListening(false)
       setIsRestarting(false)
       
-      // Only restart for certain errors, not all
-      if (event.error === 'no-speech' || event.error === 'audio-capture') {
-        if (chatMode === 'phone' && isVoiceActive && !isProcessingVoice) {
-          setTimeout(() => {
-            if (chatMode === 'phone' && isVoiceActive && !isListening && !isRestarting) {
-              console.log('🎤 Restarting after error...')
-              startVoiceRecognition()
-            }
-          }, 2000)
-        }
-      }
+      // Don't auto-restart here, let the useEffect handle it
     }
 
     recognitionRef.current.onend = () => {
@@ -214,13 +245,24 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     } catch (error) {
       console.error('Error starting recognition:', error)
       setIsListening(false)
-      setIsRestarting(false)
     }
   }
 
 
   const processVoiceConversation = async (transcript: string) => {
-    if (isProcessingVoice) return
+    if (isProcessingVoice) {
+      console.log('🎤 Already processing voice, skipping...')
+      return
+    }
+    
+    // Check if this is a duplicate of recent messages (last 5 messages)
+    const recentMessages = messages.slice(-5).filter(msg => msg.type === 'user')
+    const isDuplicate = recentMessages.some(msg => msg.content === transcript)
+    
+    if (isDuplicate) {
+      console.log('🎤 Duplicate message detected, skipping...', { transcript })
+      return
+    }
     
     setIsProcessingVoice(true)
     console.log('🎤 Processing voice conversation:', transcript)
@@ -277,6 +319,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsProcessingVoice(false)
+      setLastProcessedTime(Date.now()) // Update last processed time
       console.log('🎤 Voice processing completed')
     }
   }
@@ -309,7 +352,15 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setIsSpeaking(false)
       console.log('🔊 ChatGPT finished speaking')
       
-      // Don't auto-restart here, let the useEffect handle it
+      // Restart voice recognition after speaking in phone mode
+      if (chatMode === 'phone' && isVoiceActive && !isListening && !isProcessingVoice) {
+        setTimeout(() => {
+          if (chatMode === 'phone' && isVoiceActive && !isListening && !isProcessingVoice) {
+            console.log('🎤 Restarting voice recognition after speaking')
+            startVoiceRecognition()
+          }
+        }, 2000) // Wait 2 seconds before restarting
+      }
     }
 
     utterance.onerror = (event) => {
@@ -360,6 +411,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     console.log('📞 Switching to phone mode...')
     setChatMode('phone')
     setIsVoiceActive(true)
+    setIsRestarting(false)
     
     // Stop any current recognition first
     stopVoiceRecognition()
