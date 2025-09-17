@@ -45,7 +45,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
-  const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const synthesisRef = useRef<SpeechSynthesisUtterance | HTMLAudioElement | null>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -150,7 +150,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setMessages(prev => [...prev, assistantMessage])
 
       // Lecture vocale automatique si activée
-      if (isVoiceMode) {
+      if (isVoiceActive) {
         speakText(data.response)
       }
 
@@ -208,7 +208,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       const finalResults = Array.from(event.results).filter((result: any) => result.isFinal)
       
       if (finalResults.length > 0) {
-        const result = finalResults[0]
+        const result = finalResults[0] as any
         const transcript = result[0].transcript
         const confidence = result[0].confidence
         
@@ -520,9 +520,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     console.log('🛑 Stopping ChatGPT speech...')
     
     // Stop Google TTS audio if playing
-    if (synthesisRef.current && synthesisRef.current.pause) {
-      synthesisRef.current.pause()
-      synthesisRef.current.currentTime = 0
+    if (synthesisRef.current && 'pause' in synthesisRef.current) {
+      (synthesisRef.current as HTMLAudioElement).pause()
+      ;(synthesisRef.current as HTMLAudioElement).currentTime = 0
       synthesisRef.current = null
     }
     
@@ -782,7 +782,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   {isListening && (
                     <div className="flex items-center space-x-2 text-red-600">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium">J'écoute...</span>
+                      <span className="font-medium">J&apos;écoute...</span>
                     </div>
                   )}
                   {isProcessingVoice && (
