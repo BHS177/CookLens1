@@ -373,11 +373,16 @@ export default function CuisinePreferenceSelector({
               <Clock className="w-5 h-5 mr-2 text-primary-600" />
               Temps de préparation
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Préparation max : {maxPrepTime} minutes
-                </label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    Temps de préparation
+                  </label>
+                  <span className="text-sm font-semibold text-primary-600">
+                    {maxPrepTime} min
+                  </span>
+                </div>
                 <input
                   type="range"
                   min="15"
@@ -385,13 +390,26 @@ export default function CuisinePreferenceSelector({
                   step="15"
                   value={maxPrepTime}
                   onChange={(e) => setMaxPrepTime(Number(e.target.value))}
-                  className="w-full"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxPrepTime - 15) / (120 - 15) * 100}%, #e5e7eb ${(maxPrepTime - 15) / (120 - 15) * 100}%, #e5e7eb 100%)`
+                  }}
                 />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>15 min</span>
+                  <span>2h</span>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cuisson max : {maxCookTime} minutes
-                </label>
+              
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    Temps de cuisson
+                  </label>
+                  <span className="text-sm font-semibold text-primary-600">
+                    {maxCookTime} min
+                  </span>
+                </div>
                 <input
                   type="range"
                   min="0"
@@ -399,8 +417,22 @@ export default function CuisinePreferenceSelector({
                   step="15"
                   value={maxCookTime}
                   onChange={(e) => setMaxCookTime(Number(e.target.value))}
-                  className="w-full"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${maxCookTime / 180 * 100}%, #e5e7eb ${maxCookTime / 180 * 100}%, #e5e7eb 100%)`
+                  }}
                 />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0 min</span>
+                  <span>3h</span>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2 text-sm text-blue-800">
+                  <Clock className="w-4 h-4" />
+                  <span className="font-medium">Temps total maximum : {maxPrepTime + maxCookTime} minutes</span>
+                </div>
               </div>
             </div>
           </div>
