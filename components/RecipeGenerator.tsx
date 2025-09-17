@@ -331,7 +331,7 @@ export default function RecipeGenerator({
                   </h3>
                   <div className="flex items-center space-x-1 text-yellow-500">
                     <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-medium">4.5</span>
+                    <span className="text-sm font-medium">{suggestion.rating || 4.0}</span>
                   </div>
                 </div>
                 
