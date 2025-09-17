@@ -196,6 +196,20 @@ export default function RecipeGenerator({
 
             {/* Instructions */}
             <div>
+              {/* ChatGPT Chat Button */}
+              <div className="mb-6">
+                <button
+                  onClick={() => {
+                    console.log('Chat button clicked from recipe page')
+                    setIsChatOpen(true)
+                  }}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+                >
+                  <MessageCircle className="w-6 h-6" />
+                  <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
+                </button>
+              </div>
+              
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <ChefHat className="w-5 h-5 mr-2" />
                 Instructions
@@ -407,19 +421,6 @@ export default function RecipeGenerator({
           <span>Retour aux préférences</span>
         </button>
         
-        {/* Chat Button */}
-        <div className="mt-4">
-          <button
-            onClick={() => {
-              console.log('Chat button clicked')
-              setIsChatOpen(true)
-            }}
-            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
-          >
-            <MessageCircle className="w-6 h-6" />
-            <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
-          </button>
-        </div>
       </div>
 
       {/* ChatGPT Live Chat */}
