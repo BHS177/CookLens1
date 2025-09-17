@@ -4,7 +4,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, recipe, conversationHistory } = await request.json()
+    const { message, recipe, conversationHistory, language = 'fr' } = await request.json()
 
     if (!OPENAI_API_KEY) {
       return NextResponse.json(
@@ -33,7 +33,8 @@ CONTEXTE DE LA RECETTE:
       .map((msg: any) => `${msg.type === 'user' ? 'Utilisateur' : 'Assistant'}: ${msg.content}`)
       .join('\n')
 
-    const systemPrompt = `Tu es un assistant culinaire expert et un chef professionnel. Tu aides l'utilisateur avec des questions sur la recette qu'il consulte.
+    const systemPrompt = language === 'fr' ? 
+      `Tu es un assistant culinaire expert et un chef professionnel. Tu aides l'utilisateur avec des questions sur la recette qu'il consulte.
 
 ${recipeContext}
 
@@ -49,7 +50,24 @@ RÈGLES IMPORTANTES:
 HISTORIQUE DE LA CONVERSATION:
 ${conversationContext}
 
-Question de l'utilisateur: ${message}`
+Question de l'utilisateur: ${message}` :
+      `You are an expert culinary assistant and professional chef. You help the user with questions about the recipe they are consulting.
+
+${recipeContext}
+
+IMPORTANT RULES:
+- Respond in English in a clear and professional manner
+- Be concise but informative (maximum 200 words per response)
+- If the user asks a question about the recipe, use the provided context
+- If the question is not related to the recipe, politely redirect to culinary topics
+- Give practical advice and chef tips
+- If the user asks for ingredient substitutions, suggest realistic alternatives
+- For cooking techniques, explain briefly but clearly
+
+CONVERSATION HISTORY:
+${conversationContext}
+
+User question: ${message}`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

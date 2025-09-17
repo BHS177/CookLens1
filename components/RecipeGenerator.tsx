@@ -405,28 +405,17 @@ export default function RecipeGenerator({
           <ArrowLeft className="w-5 h-5" />
           <span>Retour aux préférences</span>
         </button>
-        
-        {/* Test Chat Button */}
-        <div className="mt-4">
-          <button
-            onClick={() => {
-              console.log('Test chat button clicked')
-              setIsChatOpen(true)
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-2 mx-auto"
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span>Test Chat avec ChatGPT</span>
-          </button>
-        </div>
       </div>
 
-      {/* ChatGPT Live Chat */}
-      <ChatGPTLive 
-        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {/* ChatGPT Live Chat - Only show when recipe is selected */}
+      {selectedRecipe && (
+        <ChatGPTLive 
+          recipe={selectedRecipe} 
+          isOpen={isChatOpen} 
+          onClose={() => setIsChatOpen(false)}
+          language="fr" // Default to French, can be made dynamic later
+        />
+      )}
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (
