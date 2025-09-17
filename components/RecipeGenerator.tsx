@@ -136,18 +136,16 @@ export default function RecipeGenerator({
               <button className="p-2 text-gray-600 hover:text-green-600 transition-colors">
                 <Share2 className="w-5 h-5" />
               </button>
-              {selectedRecipe && (
-                <button 
-                  onClick={() => {
-                    console.log('Chat button clicked, opening chat...')
-                    setIsChatOpen(true)
-                  }}
-                  className="p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600"
-                  title="Chat en direct avec ChatGPT"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                </button>
-              )}
+              <button 
+                onClick={() => {
+                  console.log('Header chat button clicked, opening chat...')
+                  setIsChatOpen(true)
+                }}
+                className="p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600"
+                title="Chat avec ChatGPT sur cette recette"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
@@ -199,21 +197,14 @@ export default function RecipeGenerator({
               {/* ChatGPT Chat Button */}
               <div className="mb-6">
                 <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('Chat button clicked from recipe page')
-                    console.log('Setting isChatOpen to true')
+                  onClick={() => {
+                    console.log('Recipe chat button clicked')
                     setIsChatOpen(true)
                   }}
-                  onMouseDown={(e) => {
-                    console.log('Chat button mouse down')
-                  }}
-                  className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold text-lg hover:from-green-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl cursor-pointer"
-                  style={{ pointerEvents: 'auto' }}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
                 >
                   <MessageCircle className="w-6 h-6" />
-                  <span>💬 Chat avec ChatGPT</span>
+                  <span className="text-lg font-semibold">💬 Poser une question sur cette recette</span>
                 </button>
               </div>
               
@@ -428,19 +419,27 @@ export default function RecipeGenerator({
           <span>Retour aux préférences</span>
         </button>
         
+        {/* Chat Button */}
+        <div className="mt-4">
+          <button
+            onClick={() => {
+              console.log('Chat button clicked')
+              setIsChatOpen(true)
+            }}
+            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
+          </button>
+        </div>
       </div>
 
       {/* ChatGPT Live Chat */}
-      {isChatOpen && (
-        <ChatGPTLive 
-          recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
-          isOpen={isChatOpen} 
-          onClose={() => {
-            console.log('Closing chat modal')
-            setIsChatOpen(false)
-          }} 
-        />
-      )}
+      <ChatGPTLive 
+        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (
