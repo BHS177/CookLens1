@@ -110,6 +110,20 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     }
   }, [chatMode, isVoiceActive, isListening, isSpeaking, isProcessingVoice])
 
+  // Cleanup effect when component unmounts
+  useEffect(() => {
+    return () => {
+      console.log('🧹 Component unmounting, cleaning up voice activities...')
+      // Stop all voice activities when component unmounts
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
+    }
+  }, [])
+
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
 
@@ -544,6 +558,30 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     stopSpeaking()
   }
 
+  const handleClose = () => {
+    console.log('🚪 Closing chat, stopping all voice activities...')
+    
+    // Stop all voice activities
+    stopVoiceRecognition()
+    stopSpeaking()
+    
+    // Reset all states
+    setIsVoiceActive(false)
+    setIsListening(false)
+    setIsSpeaking(false)
+    setIsProcessingVoice(false)
+    setIsRestarting(false)
+    setChatMode('message')
+    
+    // Clear any pending timeouts
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
+    
+    // Close the chat
+    onClose()
+  }
+
   const switchToPhoneMode = () => {
     console.log('📞 Switching to phone mode...')
     setChatMode('phone')
@@ -572,7 +610,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -628,12 +666,12 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 </button>
               )}
               
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+                        <button
+                          onClick={handleClose}
+                          className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
             </div>
           </div>
 
