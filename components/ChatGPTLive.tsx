@@ -42,7 +42,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   const [isRestarting, setIsRestarting] = useState(false)
   const [lastProcessedTime, setLastProcessedTime] = useState(0)
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [detectedLanguage, setDetectedLanguage] = useState<string>('fr-FR')
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -50,34 +49,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  // Fonction pour détecter la langue du texte
-  const detectLanguage = (text: string): string => {
-    const lowerText = text.toLowerCase()
-    
-    // Détection de l'arabe (caractères arabes)
-    if (/[\u0600-\u06FF]/.test(text)) {
-      return 'ar-SA' // Arabe standard
-    }
-    
-    // Détection de l'espagnol
-    if (/\b(el|la|los|las|de|del|en|con|por|para|que|como|muy|bien|más|también|pero|cuando|donde|porque|si|no|sí|también|muy|bien|más|también|pero|cuando|donde|porque|si|no|sí)\b/.test(lowerText)) {
-      return 'es-ES'
-    }
-    
-    // Détection de l'anglais
-    if (/\b(the|and|or|but|in|on|at|to|for|of|with|by|from|up|about|into|through|during|before|after|above|below|between|among|under|over|around|near|far|here|there|where|when|why|how|what|who|which|that|this|these|those|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|could|should|may|might|must|can|cannot|shall|ought)\b/.test(lowerText)) {
-      return 'en-US'
-    }
-    
-    // Détection du français (mots français courants)
-    if (/\b(le|la|les|de|du|des|un|une|et|ou|mais|donc|or|ni|car|que|qui|quoi|où|quand|comment|pourquoi|avec|sans|dans|sur|sous|entre|parmi|chez|vers|jusqu|depuis|pendant|avant|après|pendant|durant|malgré|grâce|selon|d'après|à|au|aux|de|du|des|en|dans|sur|sous|entre|parmi|chez|vers|jusqu|depuis|pendant|avant|après|pendant|durant|malgré|grâce|selon|d'après)\b/.test(lowerText)) {
-      return 'fr-FR'
-    }
-    
-    // Par défaut, retourner français
-    return 'fr-FR'
   }
 
   useEffect(() => {
@@ -155,11 +126,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
-
-    // Détecter la langue du message utilisateur
-    const detectedLang = detectLanguage(content)
-    setDetectedLanguage(detectedLang)
-    console.log('🌍 Langue détectée:', detectedLang)
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -243,7 +209,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     recognitionRef.current = new SpeechRecognition()
     recognitionRef.current.continuous = chatMode === 'phone'
     recognitionRef.current.interimResults = true // Enable interim results for better accuracy
-    recognitionRef.current.lang = detectedLanguage // Use detected language
+    recognitionRef.current.lang = 'fr-FR'
     recognitionRef.current.maxAlternatives = 3 // Get multiple alternatives
 
     recognitionRef.current.onstart = () => {
@@ -371,11 +337,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       return
     }
     
-    // Détecter la langue du transcript
-    const detectedLang = detectLanguage(transcript)
-    setDetectedLanguage(detectedLang)
-    console.log('🌍 Langue détectée dans la voix:', detectedLang)
-    
     // Check if this is a duplicate of recent messages (last 5 messages)
     const recentMessages = messages.slice(-5).filter(msg => msg.type === 'user')
     const isDuplicate = recentMessages.some(msg => msg.content === transcript)
@@ -448,14 +409,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     }
   }
 
-  const speakText = (text: string) => {
-    if (isMuted) return
-
-    // Arrêter la lecture précédente
-    window.speechSynthesis.cancel()
-
-    // Clean text for natural speech
-    const cleanText = text
+  // Function to enhance text for natural human-like speech with proper pauses
+  const enhanceTextForSpeech = (text: string): string => {
+    return text
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
       .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
       .replace(/#{1,6}\s*/g, '') // Remove headers
@@ -464,86 +420,161 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links, keep text
       .replace(/^\d+\.\s*/gm, '') // Remove numbered list markers
       .replace(/^[-*+]\s*/gm, '') // Remove bullet points
-      .replace(/\n\s*\n/g, '. ') // Replace multiple newlines with pause
+      // Enhanced pause handling for natural speech flow
+      .replace(/\.\s+/g, ', ') // Convert periods to commas for natural pauses
+      .replace(/,\s+/g, ', ') // Single space after commas
+      .replace(/;\s+/g, ', ') // Convert semicolons to commas for natural pauses
+      .replace(/:\s+/g, ', ') // Convert colons to commas for natural pauses
+      .replace(/!\s+/g, '! ') // Keep exclamations with space
+      .replace(/\?\s+/g, '? ') // Keep questions with space
+      // Add natural pauses for better comprehension
+      .replace(/\.\s*\.\s*\./g, '... ') // Ellipsis with pause
+      .replace(/\n\s*\n/g, ', ') // Replace multiple newlines with comma pause
       .replace(/\n/g, ' ') // Replace single newlines with space
       .replace(/\s+/g, ' ') // Replace multiple spaces with single space
       .replace(/[^\w\s.,!?;:()\-'àâäéèêëïîôöùûüÿçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]/g, '') // Keep only letters, numbers, punctuation and French accents
-      .replace(/\s*\.\s*\.\s*\./g, '.') // Clean up multiple dots
+      .replace(/\s*\.\s*\.\s*\./g, '...') // Clean up multiple dots
       .replace(/\s*,\s*,\s*/g, ', ') // Clean up multiple commas
+      // Ensure the last sentence ends with a period for natural conclusion
+      .replace(/,\s*$/, '.') // Replace trailing comma with period
       .trim()
+  }
+
+  const speakText = async (text: string) => {
+    if (isMuted) return
+
+    // Arrêter la lecture précédente
+    window.speechSynthesis.cancel()
+
+    // Enhanced text processing for natural human-like speech
+    const cleanText = enhanceTextForSpeech(text)
 
     console.log('🔊 Original text:', text.substring(0, 100) + '...')
     console.log('🔊 Cleaned text:', cleanText.substring(0, 100) + '...')
 
-    const utterance = new SpeechSynthesisUtterance(cleanText)
-    utterance.lang = detectedLanguage
-    
-    // Optimized voice settings for better quality
-    utterance.rate = 0.9  // Slightly faster for more natural speech
-    utterance.pitch = 1.1  // Slightly higher pitch for more engaging voice
-    utterance.volume = 1
-    
-    // Try to use the best available voice for the detected language
-    const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices()
-    const languageVoices = voices.filter(voice => 
-      voice.lang.startsWith(detectedLanguage.split('-')[0]) && 
-      (voice.name.includes('Google') || 
-       voice.name.includes('Microsoft') || 
-       voice.name.includes('Alex') ||
-       voice.name.includes('Amélie') ||
-       voice.name.includes('Thomas') ||
-       voice.name.includes('Marie') ||
-       voice.name.includes('Virginie') ||
-       voice.name.includes('Paul') ||
-       voice.name.includes('Julie') ||
-       voice.name.includes('Ahmed') ||
-       voice.name.includes('Layla') ||
-       voice.name.includes('Omar') ||
-       voice.name.includes('Fatima') ||
-       voice.name.includes('Carlos') ||
-       voice.name.includes('Maria') ||
-       voice.name.includes('Diego') ||
-       voice.name.includes('Sofia'))
-    )
-    
-    if (languageVoices.length > 0) {
-      // Prefer high-quality voices in this order
-      const preferredVoice = languageVoices.find(voice => 
-        voice.name.includes('Google')
-      ) || languageVoices.find(voice => 
-        voice.name.includes('Microsoft')
-      ) || languageVoices.find(voice => 
-        voice.name.includes('Alex')
-      ) || languageVoices.find(voice => 
-        voice.name.includes('Amélie')
-      ) || languageVoices[0]
+    try {
+      // Use Google Cloud Text-to-Speech API
+      const response = await fetch('/api/google-tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: cleanText,
+          language: 'fr-FR',
+          voice: 'fr-FR-Wavenet-A', // High-quality French female voice
+          speakingRate: 0.9,
+          pitch: 0.0,
+          volumeGainDb: 0.0
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Google TTS API error')
+      }
+
+      const audioBlob = await response.blob()
+      const audioUrl = URL.createObjectURL(audioBlob)
+      const audio = new Audio(audioUrl)
       
-      utterance.voice = preferredVoice
-      console.log('🔊 Using voice:', preferredVoice.name, 'Language:', preferredVoice.lang)
-    } else {
-      console.log(`🔊 No ${detectedLanguage} voices found, using default`)
-    }
-
-    utterance.onstart = () => {
-      setIsSpeaking(true)
-      console.log('🔊 ChatGPT speaking:', text.substring(0, 50) + '...')
-    }
-
-    utterance.onend = () => {
-      setIsSpeaking(false)
-      console.log('🔊 ChatGPT finished speaking')
+      audio.onplay = () => {
+        setIsSpeaking(true)
+        console.log('🔊 Google TTS speaking:', cleanText.substring(0, 50) + '...')
+      }
       
-      // Don't auto-restart voice recognition - user must click Retalk
-      // This prevents capturing ChatGPT's speech as user input
-    }
+      audio.onended = () => {
+        setIsSpeaking(false)
+        console.log('🔊 Google TTS finished speaking')
+        URL.revokeObjectURL(audioUrl) // Clean up
+      }
+      
+      audio.onerror = (error) => {
+        console.error('Google TTS audio error:', error)
+        setIsSpeaking(false)
+        URL.revokeObjectURL(audioUrl) // Clean up
+      }
+      
+      await audio.play()
+      
+    } catch (error) {
+      console.error('Google TTS error, falling back to browser TTS:', error)
+      
+      // Fallback to browser TTS
+      const utterance = new SpeechSynthesisUtterance(cleanText)
+      utterance.lang = 'fr-FR'
+      
+      // Human-like voice settings for natural speech
+      utterance.rate = 0.85  // Slower for more natural, human-like pace
+      utterance.pitch = 1.0  // Natural pitch
+      utterance.volume = 1
+    
+      // Try to use the best available French voice for human-like speech
+      const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices()
+      const frenchVoices = voices.filter(voice => 
+        voice.lang.startsWith('fr') && 
+        (voice.name.includes('Google') || 
+         voice.name.includes('Microsoft') || 
+         voice.name.includes('Alex') ||
+         voice.name.includes('Amélie') ||
+         voice.name.includes('Thomas') ||
+         voice.name.includes('Marie') ||
+         voice.name.includes('Virginie') ||
+         voice.name.includes('Paul') ||
+         voice.name.includes('Julie'))
+      )
+      
+      if (frenchVoices.length > 0) {
+        // Prefer the most natural and human-like voices in this order
+        const preferredVoice = frenchVoices.find(voice => 
+          voice.name.includes('Amélie') && voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Thomas') && voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Virginie') && voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Paul') && voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Julie') && voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Amélie')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Thomas')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Virginie')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Paul')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Julie')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Google')
+        ) || frenchVoices.find(voice => 
+          voice.name.includes('Microsoft')
+        ) || frenchVoices[0]
+        
+        utterance.voice = preferredVoice
+        console.log('🔊 Using fallback voice:', preferredVoice.name, 'Language:', preferredVoice.lang)
+      } else {
+        console.log('🔊 No French voices found, using default')
+      }
 
-    utterance.onerror = (event) => {
-      console.error('Erreur de synthèse vocale:', event.error)
-      setIsSpeaking(false)
-    }
+      utterance.onstart = () => {
+        setIsSpeaking(true)
+        console.log('🔊 Browser TTS speaking:', cleanText.substring(0, 50) + '...')
+      }
 
-    synthesisRef.current = utterance
-    window.speechSynthesis.speak(utterance)
+      utterance.onend = () => {
+        setIsSpeaking(false)
+        console.log('🔊 Browser TTS finished speaking')
+      }
+
+      utterance.onerror = (event) => {
+        console.error('Erreur de synthèse vocale:', event.error)
+        setIsSpeaking(false)
+      }
+
+      synthesisRef.current = utterance
+      window.speechSynthesis.speak(utterance)
+    }
   }
 
   const stopSpeaking = () => {
