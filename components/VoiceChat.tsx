@@ -162,6 +162,8 @@ export default function VoiceChat({ isOpen, onClose, recipeTitle }: VoiceChatPro
     }
   }
 
+  console.log('VoiceChat render - isOpen:', isOpen, 'recipeTitle:', recipeTitle)
+
   if (!isOpen) return null
 
   return (
@@ -169,7 +171,7 @@ export default function VoiceChat({ isOpen, onClose, recipeTitle }: VoiceChatPro
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}

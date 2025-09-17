@@ -145,8 +145,11 @@ export default function RecipeGenerator({
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsVoiceChatOpen(true)}
-                className="flex items-center space-x-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                onClick={() => {
+                  console.log('Voice chat button clicked!')
+                  setIsVoiceChatOpen(true)
+                }}
+                className="flex items-center space-x-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer active:scale-95"
               >
                 <Mic className="w-5 h-5" />
                 <span className="font-medium">Assistant Chef Vocal</span>
@@ -408,9 +411,16 @@ export default function RecipeGenerator({
       </div>
 
       {/* Voice Chat Modal */}
+      {(() => {
+        console.log('Voice chat state:', isVoiceChatOpen, 'Recipe title:', selectedRecipe?.title)
+        return null
+      })()}
       <VoiceChat
         isOpen={isVoiceChatOpen}
-        onClose={() => setIsVoiceChatOpen(false)}
+        onClose={() => {
+          console.log('Closing voice chat')
+          setIsVoiceChatOpen(false)
+        }}
         recipeTitle={selectedRecipe?.title || ''}
       />
     </motion.div>
