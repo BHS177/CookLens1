@@ -173,13 +173,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
     } catch (error) {
       console.error('Erreur ChatGPT:', error)
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Désolé, je rencontre un problème technique. Veuillez réessayer.',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -399,13 +392,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
     } catch (error) {
       console.error('Erreur conversation vocale:', error)
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: 'Désolé, je rencontre un problème technique. Veuillez réessayer.',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsProcessingVoice(false)
       setLastProcessedTime(Date.now()) // Update last processed time
