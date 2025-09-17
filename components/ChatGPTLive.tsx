@@ -42,6 +42,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   const [isRestarting, setIsRestarting] = useState(false)
   const [lastProcessedTime, setLastProcessedTime] = useState(0)
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [detectedLanguage, setDetectedLanguage] = useState<string>('fr-FR')
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -49,6 +50,34 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // Fonction pour détecter la langue du texte
+  const detectLanguage = (text: string): string => {
+    const lowerText = text.toLowerCase()
+    
+    // Détection de l'arabe (caractères arabes)
+    if (/[\u0600-\u06FF]/.test(text)) {
+      return 'ar-SA' // Arabe standard
+    }
+    
+    // Détection de l'espagnol
+    if (/\b(el|la|los|las|de|del|en|con|por|para|que|como|muy|bien|más|también|pero|cuando|donde|porque|si|no|sí|también|muy|bien|más|también|pero|cuando|donde|porque|si|no|sí)\b/.test(lowerText)) {
+      return 'es-ES'
+    }
+    
+    // Détection de l'anglais
+    if (/\b(the|and|or|but|in|on|at|to|for|of|with|by|from|up|about|into|through|during|before|after|above|below|between|among|under|over|around|near|far|here|there|where|when|why|how|what|who|which|that|this|these|those|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|could|should|may|might|must|can|cannot|shall|ought)\b/.test(lowerText)) {
+      return 'en-US'
+    }
+    
+    // Détection du français (mots français courants)
+    if (/\b(le|la|les|de|du|des|un|une|et|ou|mais|donc|or|ni|car|que|qui|quoi|où|quand|comment|pourquoi|avec|sans|dans|sur|sous|entre|parmi|chez|vers|jusqu|depuis|pendant|avant|après|pendant|durant|malgré|grâce|selon|d'après|à|au|aux|de|du|des|en|dans|sur|sous|entre|parmi|chez|vers|jusqu|depuis|pendant|avant|après|pendant|durant|malgré|grâce|selon|d'après)\b/.test(lowerText)) {
+      return 'fr-FR'
+    }
+    
+    // Par défaut, retourner français
+    return 'fr-FR'
   }
 
   useEffect(() => {
@@ -126,6 +155,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
+
+    // Détecter la langue du message utilisateur
+    const detectedLang = detectLanguage(content)
+    setDetectedLanguage(detectedLang)
+    console.log('🌍 Langue détectée:', detectedLang)
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -209,7 +243,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     recognitionRef.current = new SpeechRecognition()
     recognitionRef.current.continuous = chatMode === 'phone'
     recognitionRef.current.interimResults = true // Enable interim results for better accuracy
-    recognitionRef.current.lang = 'fr-FR'
+    recognitionRef.current.lang = detectedLanguage // Use detected language
     recognitionRef.current.maxAlternatives = 3 // Get multiple alternatives
 
     recognitionRef.current.onstart = () => {
@@ -337,6 +371,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       return
     }
     
+    // Détecter la langue du transcript
+    const detectedLang = detectLanguage(transcript)
+    setDetectedLanguage(detectedLang)
+    console.log('🌍 Langue détectée dans la voix:', detectedLang)
+    
     // Check if this is a duplicate of recent messages (last 5 messages)
     const recentMessages = messages.slice(-5).filter(msg => msg.type === 'user')
     const isDuplicate = recentMessages.some(msg => msg.content === transcript)
@@ -437,17 +476,17 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     console.log('🔊 Cleaned text:', cleanText.substring(0, 100) + '...')
 
     const utterance = new SpeechSynthesisUtterance(cleanText)
-    utterance.lang = 'fr-FR'
+    utterance.lang = detectedLanguage
     
     // Optimized voice settings for better quality
     utterance.rate = 0.9  // Slightly faster for more natural speech
     utterance.pitch = 1.1  // Slightly higher pitch for more engaging voice
     utterance.volume = 1
     
-    // Try to use the best available French voice
+    // Try to use the best available voice for the detected language
     const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices()
-    const frenchVoices = voices.filter(voice => 
-      voice.lang.startsWith('fr') && 
+    const languageVoices = voices.filter(voice => 
+      voice.lang.startsWith(detectedLanguage.split('-')[0]) && 
       (voice.name.includes('Google') || 
        voice.name.includes('Microsoft') || 
        voice.name.includes('Alex') ||
@@ -456,25 +495,33 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
        voice.name.includes('Marie') ||
        voice.name.includes('Virginie') ||
        voice.name.includes('Paul') ||
-       voice.name.includes('Julie'))
+       voice.name.includes('Julie') ||
+       voice.name.includes('Ahmed') ||
+       voice.name.includes('Layla') ||
+       voice.name.includes('Omar') ||
+       voice.name.includes('Fatima') ||
+       voice.name.includes('Carlos') ||
+       voice.name.includes('Maria') ||
+       voice.name.includes('Diego') ||
+       voice.name.includes('Sofia'))
     )
     
-    if (frenchVoices.length > 0) {
+    if (languageVoices.length > 0) {
       // Prefer high-quality voices in this order
-      const preferredVoice = frenchVoices.find(voice => 
+      const preferredVoice = languageVoices.find(voice => 
         voice.name.includes('Google')
-      ) || frenchVoices.find(voice => 
+      ) || languageVoices.find(voice => 
         voice.name.includes('Microsoft')
-      ) || frenchVoices.find(voice => 
+      ) || languageVoices.find(voice => 
         voice.name.includes('Alex')
-      ) || frenchVoices.find(voice => 
+      ) || languageVoices.find(voice => 
         voice.name.includes('Amélie')
-      ) || frenchVoices[0]
+      ) || languageVoices[0]
       
       utterance.voice = preferredVoice
       console.log('🔊 Using voice:', preferredVoice.name, 'Language:', preferredVoice.lang)
     } else {
-      console.log('🔊 No French voices found, using default')
+      console.log(`🔊 No ${detectedLanguage} voices found, using default`)
     }
 
     utterance.onstart = () => {
