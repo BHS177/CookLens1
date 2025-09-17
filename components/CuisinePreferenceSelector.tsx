@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
+import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react'
 import { DetectedIngredient, UserPreferences } from '@/types'
 import { useLanguage } from '@/contexts/LanguageContext'
 
@@ -30,6 +30,7 @@ export default function CuisinePreferenceSelector({
   const [newIngredient, setNewIngredient] = useState<string>('')
   const [editingIngredient, setEditingIngredient] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState<string>('')
+  const [showCountryError, setShowCountryError] = useState<boolean>(false)
 
   // Sync ingredients when they change
   useEffect(() => {
@@ -125,6 +126,15 @@ export default function CuisinePreferenceSelector({
   }
 
   const handleContinue = () => {
+    // Validation: Check if country is selected when chef mode is 'country'
+    if (chefMode === 'country' && (!selectedCountry || selectedCountry.trim() === '' || selectedCountry === 'Sélectionnez un pays')) {
+      setShowCountryError(true)
+      return // Don't proceed if no country selected
+    }
+
+    // Clear error if country is selected
+    setShowCountryError(false)
+
     const preferences: UserPreferences = {
       cuisine: chefMode === 'country' && selectedCountry ? [selectedCountry] : [],
       diet,
@@ -151,6 +161,16 @@ export default function CuisinePreferenceSelector({
     setSelectedCountry(country)
     if (country) {
       setCountrySearch('')
+      // Clear error when country is selected
+      setShowCountryError(false)
+    }
+  }
+
+  const handleChefModeChange = (mode: 'expert' | 'country' | 'simple') => {
+    setChefMode(mode)
+    // Clear error when chef mode changes away from country
+    if (mode !== 'country') {
+      setShowCountryError(false)
     }
   }
 
@@ -278,7 +298,7 @@ export default function CuisinePreferenceSelector({
                   name="chefMode"
                   value="simple"
                   checked={chefMode === 'simple'}
-                  onChange={(e) => setChefMode(e.target.value as any)}
+                  onChange={(e) => handleChefModeChange(e.target.value as any)}
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
@@ -293,7 +313,7 @@ export default function CuisinePreferenceSelector({
                   name="chefMode"
                   value="expert"
                   checked={chefMode === 'expert'}
-                  onChange={(e) => setChefMode(e.target.value as any)}
+                  onChange={(e) => handleChefModeChange(e.target.value as any)}
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
@@ -308,7 +328,7 @@ export default function CuisinePreferenceSelector({
                   name="chefMode"
                   value="country"
                   checked={chefMode === 'country'}
-                  onChange={(e) => setChefMode(e.target.value as any)}
+                  onChange={(e) => handleChefModeChange(e.target.value as any)}
                   className="w-4 h-4 text-primary-600"
                 />
                 <div>
@@ -515,6 +535,16 @@ export default function CuisinePreferenceSelector({
           </div>
         </div>
       </div>
+
+      {/* Error Message */}
+      {showCountryError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center space-x-2 text-red-800">
+            <AlertCircle className="w-5 h-5" />
+            <span className="font-medium">Veuillez sélectionner un pays pour continuer</span>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex justify-between">
