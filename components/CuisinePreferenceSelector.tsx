@@ -18,13 +18,13 @@ export default function CuisinePreferenceSelector({
   onBack
 }: CuisinePreferenceSelectorProps) {
   const { t } = useLanguage()
-  const [chefMode, setChefMode] = useState<'expert' | 'country' | 'simple'>('simple')
-  const [selectedCountry, setSelectedCountry] = useState<string>('')
+  const [chefMode, setChefMode] = useState<'expert' | 'country' | 'simple'>('country')
+  const [selectedCountry, setSelectedCountry] = useState<string>('France')
   const [countrySearch, setCountrySearch] = useState<string>('')
   const [maxPrepTime, setMaxPrepTime] = useState<number>(60)
   const [maxCookTime, setMaxCookTime] = useState<number>(60)
-  const [difficulty, setDifficulty] = useState<string[]>(['facile', 'moyen'])
-  const [diet, setDiet] = useState<string[]>(['omnivore'])
+  const [difficulty, setDifficulty] = useState<string[]>(['moyen'])
+  const [diet, setDiet] = useState<string[]>(['végétarien'])
   const [allergies, setAllergies] = useState<string[]>([])
   const [editableIngredients, setEditableIngredients] = useState<DetectedIngredient[]>(ingredients)
   const [newIngredient, setNewIngredient] = useState<string>('')
