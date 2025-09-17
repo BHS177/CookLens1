@@ -194,28 +194,6 @@ export default function RecipeGenerator({
               </div>
             </div>
 
-            {/* Chat Button for Recipe Help */}
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Besoin d'aide avec cette recette ?</h3>
-                <button
-                  onClick={() => {
-                    console.log('Recipe chat button clicked - isChatOpen will be set to true')
-                    console.log('Current isChatOpen state:', isChatOpen)
-                    setIsChatOpen(true)
-                    console.log('isChatOpen state after setState:', true)
-                  }}
-                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
-                >
-                  <MessageCircle className="w-6 h-6" />
-                  <span className="text-lg font-semibold">💬 Aide avec cette recette</span>
-                </button>
-                <p className="text-sm text-gray-600 mt-2">
-                  Posez des questions sur les techniques, substitutions d'ingrédients, ou conseils de cuisson
-                </p>
-              </div>
-            </div>
-
             {/* Instructions */}
             <div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
@@ -293,6 +271,32 @@ export default function RecipeGenerator({
               ))}
             </div>
           </div>
+
+          {/* ChatGPT Button for Recipe Detail */}
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <div className="text-center">
+              <button
+                onClick={() => {
+                  console.log('Recipe detail chat button clicked, opening chat...')
+                  setIsChatOpen(true)
+                }}
+                className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
+              >
+                <MessageCircle className="w-6 h-6" />
+                <span className="text-lg font-semibold">💬 Chat avec ChatGPT sur cette recette</span>
+              </button>
+              <p className="text-sm text-gray-500 mt-3">
+                Posez des questions sur les ingrédients, techniques ou modifications
+              </p>
+            </div>
+          </div>
+
+          {/* ChatGPT Live Chat for Recipe Detail */}
+          <ChatGPTLive 
+            recipe={selectedRecipe} 
+            isOpen={isChatOpen} 
+            onClose={() => setIsChatOpen(false)} 
+          />
         </div>
       </motion.div>
     )
@@ -445,13 +449,11 @@ export default function RecipeGenerator({
       </div>
 
       {/* ChatGPT Live Chat */}
-      {selectedRecipe && (
-        <ChatGPTLive 
-          recipe={selectedRecipe} 
-          isOpen={isChatOpen} 
-          onClose={() => setIsChatOpen(false)} 
-        />
-      )}
+      <ChatGPTLive 
+        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (
