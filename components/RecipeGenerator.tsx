@@ -200,8 +200,10 @@ export default function RecipeGenerator({
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Besoin d'aide avec cette recette ?</h3>
                 <button
                   onClick={() => {
-                    console.log('Recipe chat button clicked')
+                    console.log('Recipe chat button clicked - isChatOpen will be set to true')
+                    console.log('Current isChatOpen state:', isChatOpen)
                     setIsChatOpen(true)
+                    console.log('isChatOpen state after setState:', true)
                   }}
                   className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
                 >
@@ -443,11 +445,13 @@ export default function RecipeGenerator({
       </div>
 
       {/* ChatGPT Live Chat */}
-      <ChatGPTLive 
-        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {selectedRecipe && (
+        <ChatGPTLive 
+          recipe={selectedRecipe} 
+          isOpen={isChatOpen} 
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (
