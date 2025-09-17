@@ -65,6 +65,20 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     }
   }, [isOpen, recipe])
 
+  // Effect to ensure continuous voice recognition in phone mode
+  useEffect(() => {
+    if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice) {
+      const timeoutId = setTimeout(() => {
+        if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice) {
+          console.log('🎤 Auto-restarting voice recognition...')
+          startVoiceRecognition()
+        }
+      }, 2000) // Check every 2 seconds
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [chatMode, isVoiceActive, isListening, isSpeaking, isProcessingVoice])
+
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
 
@@ -191,6 +205,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     if (isProcessingVoice) return
     
     setIsProcessingVoice(true)
+    console.log('🎤 Processing voice conversation:', transcript)
     
     try {
       // Add user message
@@ -244,6 +259,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsProcessingVoice(false)
+      console.log('🎤 Voice processing completed')
     }
   }
 
@@ -275,20 +291,31 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setIsSpeaking(false)
       console.log('🔊 ChatGPT finished speaking')
       
-      // If in phone mode, restart listening after speaking
+      // If in phone mode and voice is active, restart listening after a short delay
       if (chatMode === 'phone' && isVoiceActive && !isListening && !isProcessingVoice) {
+        console.log('🎤 Scheduling voice recognition restart...')
         setTimeout(() => {
-          if (chatMode === 'phone' && isVoiceActive && !isListening) {
+          if (chatMode === 'phone' && isVoiceActive && !isListening && !isProcessingVoice) {
             console.log('🎤 Restarting voice recognition after speaking')
             startVoiceRecognition()
           }
-        }, 1000)
+        }, 1500) // Increased delay to ensure speech is fully finished
       }
     }
 
     utterance.onerror = (event) => {
       console.error('Erreur de synthèse vocale:', event.error)
       setIsSpeaking(false)
+      
+      // Even on error, restart listening if in phone mode
+      if (chatMode === 'phone' && isVoiceActive && !isListening && !isProcessingVoice) {
+        setTimeout(() => {
+          if (chatMode === 'phone' && isVoiceActive && !isListening) {
+            console.log('🎤 Restarting voice recognition after speech error')
+            startVoiceRecognition()
+          }
+        }, 1000)
+      }
     }
 
     synthesisRef.current = utterance
@@ -301,14 +328,20 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }
 
   const interruptAndListen = () => {
+    console.log('🛑 Interrupting ChatGPT and starting to listen...')
+    
     // Stop ChatGPT speaking
     stopSpeaking()
+    
+    // Stop any current recognition
+    stopVoiceRecognition()
     
     // Start listening immediately
     if (chatMode === 'phone' && isVoiceActive) {
       setTimeout(() => {
+        console.log('🎤 Starting voice recognition after interruption')
         startVoiceRecognition()
-      }, 200)
+      }, 300)
     }
   }
 
@@ -325,9 +358,18 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }
 
   const switchToPhoneMode = () => {
+    console.log('📞 Switching to phone mode...')
     setChatMode('phone')
     setIsVoiceActive(true)
-    startVoiceRecognition()
+    
+    // Stop any current recognition first
+    stopVoiceRecognition()
+    
+    // Start voice recognition after a short delay
+    setTimeout(() => {
+      console.log('🎤 Starting voice recognition in phone mode')
+      startVoiceRecognition()
+    }, 500)
   }
 
   // Debug log
