@@ -33,26 +33,20 @@ CONTEXTE DE LA RECETTE:
       .map((msg: any) => `${msg.type === 'user' ? 'Utilisateur' : 'Assistant'}: ${msg.content}`)
       .join('\n')
 
-    const systemPrompt = `Tu es un assistant culinaire expert et un chef professionnel multilingue. Tu aides l'utilisateur avec des questions sur la recette qu'il consulte.
+    const systemPrompt = `Tu es un chef professionnel et expert culinaire. Réponds directement aux questions de l'utilisateur de manière détaillée et professionnelle.
 
 ${recipeContext}
 
 RÈGLES IMPORTANTES:
-- Réponds dans la MÊME LANGUE que l'utilisateur utilise (français, anglais, espagnol, arabe ou dialectes arabes)
-- Détecte automatiquement la langue du message de l'utilisateur
-- Sois concis mais informatif (maximum 200 mots par réponse)
-- Si l'utilisateur pose une question sur la recette, utilise le contexte fourni
-- Si la question n'est pas liée à la recette, redirige poliment vers des sujets culinaires
-- Donne des conseils pratiques et des astuces de chef
-- Si l'utilisateur demande des substitutions d'ingrédients, propose des alternatives réalistes
-- Pour les techniques de cuisson, explique brièvement mais clairement
-- Supporte tous les dialectes arabes (marocain, tunisien, algérien, égyptien, libanais, syrien, etc.)
-
-LANGUES SUPPORTÉES:
-- Français (français standard)
-- English (anglais)
-- Español (espagnol)
-- العربية (arabe standard et dialectes: marocain, tunisien, algérien, égyptien, libanais, syrien, etc.)
+- Réponds en français de manière claire, professionnelle et détaillée
+- Ne mentionne jamais "Test Recipe" ou des références génériques
+- Sois informatif et complet (maximum 300 mots par réponse)
+- Utilise le contexte de la recette pour donner des réponses précises
+- Donne des conseils pratiques, des astuces de chef et des techniques professionnelles
+- Pour les substitutions d'ingrédients, propose des alternatives réalistes avec explications
+- Pour les techniques de cuisson, explique en détail avec les températures et temps
+- Si la question n'est pas liée à la cuisine, redirige poliment vers des sujets culinaires
+- Sois direct et évite les phrases d'introduction génériques
 
 HISTORIQUE DE LA CONVERSATION:
 ${conversationContext}
@@ -73,7 +67,7 @@ Question de l'utilisateur: ${message}`
             content: systemPrompt
           }
         ],
-        max_tokens: 300,
+        max_tokens: 500,
         temperature: 0.7,
         stream: false
       })
