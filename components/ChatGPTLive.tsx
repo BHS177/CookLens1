@@ -56,7 +56,17 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       const welcomeMessage: Message = {
         id: 'welcome',
         type: 'assistant',
-        content: `Bonjour ! Je suis votre assistant culinaire ChatGPT. Je peux vous aider avec la recette "${recipe.title}". Vous pouvez me poser des questions sur les ingrédients, les techniques de cuisson, les substitutions, ou tout autre aspect de cette recette. Comment puis-je vous aider ?`,
+        content: `Bonjour ! Je suis votre assistant culinaire ChatGPT. Je peux vous aider avec la recette "${recipe.title}". 
+
+Vous pouvez me poser des questions sur :
+• Les techniques de cuisson spécifiques
+• Les substitutions d'ingrédients
+• Les conseils pour réussir cette recette
+• Les variations possibles
+• Les temps de cuisson et températures
+• Les astuces de chef
+
+Comment puis-je vous aider avec cette recette ?`,
         timestamp: new Date()
       }
       setMessages([welcomeMessage])
