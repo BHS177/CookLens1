@@ -199,14 +199,21 @@ export default function RecipeGenerator({
               {/* ChatGPT Chat Button */}
               <div className="mb-6">
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
                     console.log('Chat button clicked from recipe page')
+                    console.log('Setting isChatOpen to true')
                     setIsChatOpen(true)
                   }}
-                  className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl"
+                  onMouseDown={(e) => {
+                    console.log('Chat button mouse down')
+                  }}
+                  className="w-full px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold text-lg hover:from-green-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg hover:shadow-xl cursor-pointer"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   <MessageCircle className="w-6 h-6" />
-                  <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
+                  <span>💬 Chat avec ChatGPT</span>
                 </button>
               </div>
               
@@ -424,11 +431,16 @@ export default function RecipeGenerator({
       </div>
 
       {/* ChatGPT Live Chat */}
-      <ChatGPTLive 
-        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {isChatOpen && (
+        <ChatGPTLive 
+          recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
+          isOpen={isChatOpen} 
+          onClose={() => {
+            console.log('Closing chat modal')
+            setIsChatOpen(false)
+          }} 
+        />
+      )}
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (
