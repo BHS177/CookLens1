@@ -14,11 +14,14 @@ import {
   ArrowLeft,
   RefreshCw,
   Timer,
-  Utensils
+  Utensils,
+  MessageCircle,
+  Mic
 } from 'lucide-react'
 import { Recipe, DetectedIngredient, UserPreferences } from '@/types'
 import { generateRecipeSuggestions, generateDetailedRecipe } from '@/lib/api'
 import { formatTime, formatDifficulty, formatCuisine, formatDiet } from '@/lib/utils'
+import VoiceChat from './VoiceChat'
 
 interface RecipeGeneratorProps {
   ingredients: DetectedIngredient[]
@@ -38,6 +41,7 @@ export default function RecipeGenerator({
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isVoiceChatOpen, setIsVoiceChatOpen] = useState(false)
 
   const handleGenerateSuggestions = async () => {
     try {
@@ -135,6 +139,20 @@ export default function RecipeGenerator({
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{selectedRecipe.title}</h1>
             <p className="text-lg text-gray-600 mb-6">{selectedRecipe.description}</p>
+            
+            {/* Voice Chat Button */}
+            <div className="flex justify-center mb-6">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsVoiceChatOpen(true)}
+                className="flex items-center space-x-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Mic className="w-5 h-5" />
+                <span className="font-medium">Assistant Chef Vocal</span>
+                <MessageCircle className="w-5 h-5" />
+              </motion.button>
+            </div>
             
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <div className="flex items-center space-x-1 text-gray-600">
@@ -388,6 +406,13 @@ export default function RecipeGenerator({
           <span>Retour aux préférences</span>
         </button>
       </div>
+
+      {/* Voice Chat Modal */}
+      <VoiceChat
+        isOpen={isVoiceChatOpen}
+        onClose={() => setIsVoiceChatOpen(false)}
+        recipeTitle={selectedRecipe?.title || ''}
+      />
     </motion.div>
   )
 }
