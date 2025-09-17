@@ -16,13 +16,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 const defaultPreferences: UserPreferences = {
   cuisine: ['française', 'italienne', 'asiatique'],
-  diet: ['végétarien'],
+  diet: [],
   allergies: [],
   maxPrepTime: 60,
   maxCookTime: 120,
   difficulty: ['moyen'],
   chefMode: 'country',
-  selectedCountry: 'France',
+  selectedCountry: null,
   autoUpdateRecipe: false // Désactivé par défaut pour éviter les rechargements automatiques
 }
 
