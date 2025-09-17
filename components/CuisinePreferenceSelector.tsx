@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react'
+import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X } from 'lucide-react'
 import { DetectedIngredient, UserPreferences } from '@/types'
 import { useLanguage } from '@/contexts/LanguageContext'
 
@@ -22,7 +22,7 @@ export default function CuisinePreferenceSelector({
   const [selectedCountry, setSelectedCountry] = useState<string>('')
   const [countrySearch, setCountrySearch] = useState<string>('')
   const [maxPrepTime, setMaxPrepTime] = useState<number>(60)
-  const [maxCookTime, setMaxCookTime] = useState<number>(60)
+  const [maxCookTime, setMaxCookTime] = useState<number>(120)
   const [difficulty, setDifficulty] = useState<string[]>(['moyen'])
   const [diet, setDiet] = useState<string[]>([])
   const [allergies, setAllergies] = useState<string[]>([])
@@ -30,7 +30,6 @@ export default function CuisinePreferenceSelector({
   const [newIngredient, setNewIngredient] = useState<string>('')
   const [editingIngredient, setEditingIngredient] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState<string>('')
-  const [showCountryError, setShowCountryError] = useState<boolean>(false)
 
   // Sync ingredients when they change
   useEffect(() => {
@@ -126,15 +125,6 @@ export default function CuisinePreferenceSelector({
   }
 
   const handleContinue = () => {
-    // Check if country is required but not selected
-    if (chefMode === 'country' && (!selectedCountry || selectedCountry.trim() === '')) {
-      setShowCountryError(true)
-      return // Don't proceed if no country selected
-    }
-
-    // Clear error if country is selected
-    setShowCountryError(false)
-
     const preferences: UserPreferences = {
       cuisine: chefMode === 'country' && selectedCountry ? [selectedCountry] : [],
       diet,
@@ -381,9 +371,10 @@ export default function CuisinePreferenceSelector({
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Clock className="w-5 h-5 mr-2 text-primary-600" />
-              Temps de préparation
+              Temps de cuisine
             </h3>
             <div className="space-y-6">
+              {/* Preparation Time */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
@@ -411,6 +402,7 @@ export default function CuisinePreferenceSelector({
                 </div>
               </div>
               
+              {/* Cooking Time */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
@@ -438,6 +430,7 @@ export default function CuisinePreferenceSelector({
                 </div>
               </div>
               
+              {/* Total Time Summary */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2 text-sm text-blue-800">
                   <Clock className="w-4 h-4" />
@@ -516,16 +509,6 @@ export default function CuisinePreferenceSelector({
       </div>
 
       {/* Action Buttons */}
-      {/* Error Message */}
-      {showCountryError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-2 text-red-800">
-            <AlertCircle className="w-5 h-5" />
-            <span className="font-medium">Veuillez sélectionner un pays pour continuer</span>
-          </div>
-        </div>
-      )}
-
       <div className="flex justify-between">
         <button
           onClick={onBack}
