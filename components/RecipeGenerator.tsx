@@ -41,6 +41,9 @@ export default function RecipeGenerator({
   const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  
+  // Debug log for chat state
+  console.log('RecipeGenerator state:', { isChatOpen, selectedRecipe: !!selectedRecipe })
 
   const handleGenerateSuggestions = async () => {
     try {
@@ -132,13 +135,18 @@ export default function RecipeGenerator({
               <button className="p-2 text-gray-600 hover:text-green-600 transition-colors">
                 <Share2 className="w-5 h-5" />
               </button>
-              <button 
-                onClick={() => setIsChatOpen(true)}
-                className="p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600"
-                title="Chat en direct avec ChatGPT"
-              >
-                <MessageCircle className="w-5 h-5" />
-              </button>
+              {selectedRecipe && (
+                <button 
+                  onClick={() => {
+                    console.log('Chat button clicked, opening chat...')
+                    setIsChatOpen(true)
+                  }}
+                  className="p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600"
+                  title="Chat en direct avec ChatGPT"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -400,24 +408,31 @@ export default function RecipeGenerator({
       </div>
 
       {/* ChatGPT Live Chat */}
-      <ChatGPTLive 
-        recipe={selectedRecipe} 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+      {selectedRecipe && (
+        <ChatGPTLive 
+          recipe={selectedRecipe} 
+          isOpen={isChatOpen} 
+          onClose={() => setIsChatOpen(false)} 
+        />
+      )}
 
       {/* Floating Chat Button for Mobile */}
-      <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-green-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 md:hidden"
-        title="Chat avec ChatGPT"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </motion.button>
+      {selectedRecipe && (
+        <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            console.log('Mobile chat button clicked, opening chat...')
+            setIsChatOpen(true)
+          }}
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-green-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 md:hidden"
+          title="Chat avec ChatGPT"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </motion.button>
+      )}
     </motion.div>
   )
 }

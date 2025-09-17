@@ -211,6 +211,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     if (isVoiceMode) setIsVoiceMode(false)
   }
 
+  // Debug log
+  console.log('ChatGPTLive render:', { isOpen, recipe: !!recipe })
+
   if (!isOpen) return null
 
   return (
