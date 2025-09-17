@@ -106,7 +106,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setMessages(prev => [...prev, assistantMessage])
 
       // Lecture vocale automatique si activée
-      if (isVoiceMode || isCallMode) {
+      if (isVoiceMode) {
         speakText(data.response)
       }
 
@@ -211,10 +211,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }
 
   const toggleVoiceMode = () => {
+    setIsVoiceMode(!isVoiceMode)
     if (isListening) {
       stopVoiceRecognition()
-    } else {
-      startVoiceRecognition()
     }
   }
 
@@ -349,14 +348,13 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={
                     isVoiceMode ? "Mode vocal activé - cliquez sur le micro" :
-                    isCallMode ? "Mode appel activé - parlez directement" :
                     "Tapez votre message..."
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 />
                 
-                {(isVoiceMode || isCallMode) && (
+                {isVoiceMode && (
                   <button
                     type="button"
                     onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
