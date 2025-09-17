@@ -91,24 +91,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     }
   }, [])
 
-  // Effect to ensure continuous voice recognition in phone mode
-  useEffect(() => {
-    if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice && !isRestarting) {
-      setIsRestarting(true)
-      const timeoutId = setTimeout(() => {
-        if (chatMode === 'phone' && isVoiceActive && !isListening && !isSpeaking && !isProcessingVoice) {
-          console.log('🎤 Auto-restarting voice recognition...')
-          startVoiceRecognition()
-        }
-        setIsRestarting(false)
-      }, 5000) // Increased to 5 seconds to prevent conflicts
-
-      return () => {
-        clearTimeout(timeoutId)
-        setIsRestarting(false)
-      }
-    }
-  }, [chatMode, isVoiceActive, isListening, isSpeaking, isProcessingVoice])
+  // No auto-restart - user must click Retalk manually
 
   // Cleanup effect when component unmounts
   useEffect(() => {
@@ -207,10 +190,10 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     console.log('🎤 Starting voice recognition...')
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
     recognitionRef.current = new SpeechRecognition()
-    recognitionRef.current.continuous = chatMode === 'phone'
-    recognitionRef.current.interimResults = true // Enable interim results for better accuracy
+    recognitionRef.current.continuous = false // Always false for better control
+    recognitionRef.current.interimResults = false // Disable interim results for better final results
     recognitionRef.current.lang = 'fr-FR'
-    recognitionRef.current.maxAlternatives = 3 // Get multiple alternatives
+    recognitionRef.current.maxAlternatives = 1 // Use only the best result
 
     recognitionRef.current.onstart = () => {
       setIsListening(true)
@@ -221,7 +204,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     recognitionRef.current.onresult = (event: any) => {
       console.log('🎤 Raw results:', event.results)
       
-      // Get the final result (not interim)
+      // Get the final result
       const finalResults = Array.from(event.results).filter((result: any) => result.isFinal)
       
       if (finalResults.length > 0) {
@@ -232,61 +215,22 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
         console.log('🎤 Final transcript:', transcript)
         console.log('🎤 Confidence:', confidence)
         
-        // Only process if we have a meaningful transcript with good confidence
-        if (transcript && transcript.trim().length > 0 && confidence > 0.5) {
-          const currentTime = Date.now()
+        // Process any meaningful transcript with reasonable confidence
+        if (transcript && transcript.trim().length > 2 && confidence > 0.3) {
+          console.log('🎤 Processing transcript:', transcript)
           
-          // Check if transcript looks like ChatGPT's response (contains common AI phrases)
-          const aiPhrases = [
-            'je suis', 'bien sûr', 'je serais', 'je peux', 'vous pouvez', 'n\'hésitez pas',
-            'couscous', 'brik', 'chakchouka', 'ojja', 'lablabi', 'harissa',
-            'plats tunisiens', 'authentiques', 'emblématique', 'généralement',
-            'accompagné de', 'souvent agrémentée', 'bien qu\'il ne s\'agisse pas',
-            'ce plat', 'peut être préparé', 'généralement farcie', 'une sorte de',
-            'à base de', 'souvent agrémentée', 'bien qu\'il ne s\'agisse pas d\'un plat',
-            'si vous avez des questions', 'n\'hésitez pas à demander',
-            'voici quelques', 'par exemple', 'une variante', 'bien qu\'il ne s\'agisse pas',
-            'si vous souhaitez', 'n\'hésitez pas à', 'je serais ravi'
-          ]
+          // Stop recognition immediately
+          if (recognitionRef.current) {
+            recognitionRef.current.stop()
+          }
           
-          const isLikelyAIResponse = aiPhrases.some(phrase => 
-            transcript.toLowerCase().includes(phrase.toLowerCase())
-          )
+          // Set input message and process
+          setInputMessage(transcript)
           
-          // Also check if transcript is very long (likely AI response)
-          const isVeryLong = transcript.length > 80
-          
-          // Check if transcript starts with common AI response patterns
-          const startsWithAI = /^(je suis|bien sûr|voici|par exemple|si vous|n\'hésitez pas)/i.test(transcript)
-          
-          // Prevent processing the same transcript too quickly or if it's too short
-          if (currentTime - lastProcessedTime > 2000 && transcript.trim().length > 3 && !isLikelyAIResponse && !isVeryLong && !startsWithAI) {
-            console.log('🎤 Processing new transcript:', transcript)
-            setLastProcessedTime(currentTime)
-            
-            // Stop recognition immediately to prevent loops
-            if (recognitionRef.current) {
-              recognitionRef.current.stop()
-            }
-            
-            // Set input message and process
-            setInputMessage(transcript)
-            
-            if (chatMode === 'phone') {
-              processVoiceConversation(transcript)
-            } else {
-              sendMessage(transcript)
-            }
+          if (chatMode === 'phone') {
+            processVoiceConversation(transcript)
           } else {
-            console.log('🎤 Transcript too soon, too short, low quality, looks like AI response, too long, or starts with AI pattern, ignoring...', { 
-              transcript, 
-              timeSinceLast: currentTime - lastProcessedTime,
-              length: transcript.trim().length,
-              confidence,
-              isLikelyAIResponse,
-              isVeryLong,
-              startsWithAI
-            })
+            sendMessage(transcript)
           }
         } else {
           console.log('🎤 Low confidence or empty transcript, ignoring...', { transcript, confidence })
@@ -301,17 +245,8 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setIsListening(false)
       setIsRestarting(false)
       
-      // Restart for specific errors in phone mode
-      if (event.error === 'no-speech' || event.error === 'audio-capture') {
-        if (chatMode === 'phone' && isVoiceActive && !isProcessingVoice) {
-          setTimeout(() => {
-            if (chatMode === 'phone' && isVoiceActive && !isListening) {
-              console.log('🎤 Restarting after error...')
-              startVoiceRecognition()
-            }
-          }, 2000)
-        }
-      }
+      // No auto-restart - user must click Retalk manually
+      console.log('🎤 Voice recognition stopped due to error:', event.error)
     }
 
     recognitionRef.current.onend = () => {
@@ -319,7 +254,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setIsRestarting(false)
       console.log('🎤 Voice recognition ended')
       
-      // Don't auto-restart here, let the useEffect handle it
+      // No auto-restart - user must click Retalk manually
     }
 
     try {
@@ -397,8 +332,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       setLastProcessedTime(Date.now()) // Update last processed time
       console.log('🎤 Voice processing completed')
       
-      // Don't auto-restart voice recognition - user must click Retalk
-      // This prevents capturing ChatGPT's speech as user input
+      // No auto-restart - user must click Retalk manually
     }
   }
 
@@ -477,6 +411,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       const audioUrl = URL.createObjectURL(audioBlob)
       const audio = new Audio(audioUrl)
       
+      // Store audio reference for stopping
+      synthesisRef.current = audio
+      
       audio.onplay = () => {
         setIsSpeaking(true)
         console.log('🔊 Google TTS speaking:', cleanText.substring(0, 50) + '...')
@@ -486,12 +423,14 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
         setIsSpeaking(false)
         console.log('🔊 Google TTS finished speaking')
         URL.revokeObjectURL(audioUrl) // Clean up
+        synthesisRef.current = null
       }
       
       audio.onerror = (error) => {
         console.error('Google TTS audio error:', error)
         setIsSpeaking(false)
         URL.revokeObjectURL(audioUrl) // Clean up
+        synthesisRef.current = null
       }
       
       await audio.play()
@@ -579,6 +518,20 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   const stopSpeaking = () => {
     console.log('🛑 Stopping ChatGPT speech...')
+    
+    // Stop Google TTS audio if playing
+    if (synthesisRef.current && synthesisRef.current.pause) {
+      synthesisRef.current.pause()
+      synthesisRef.current.currentTime = 0
+      synthesisRef.current = null
+    }
+    
+    // Stop all audio elements as backup
+    const audioElements = document.querySelectorAll('audio')
+    audioElements.forEach(audio => {
+      audio.pause()
+      audio.currentTime = 0
+    })
     
     // Stop speech synthesis immediately
     window.speechSynthesis.cancel()
