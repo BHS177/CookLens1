@@ -15,7 +15,8 @@ import {
   RefreshCw,
   Timer,
   Utensils,
-  MessageCircle
+  MessageCircle,
+  Phone
 } from 'lucide-react'
 import { Recipe, DetectedIngredient, UserPreferences } from '@/types'
 import { generateRecipeSuggestions, generateDetailedRecipe } from '@/lib/api'
@@ -405,17 +406,28 @@ export default function RecipeGenerator({
           <ArrowLeft className="w-5 h-5" />
           <span>Retour aux préférences</span>
         </button>
+        
+        {/* Chat Button */}
+        <div className="mt-4">
+          <button
+            onClick={() => {
+              console.log('Chat button clicked')
+              setIsChatOpen(true)
+            }}
+            className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
+          </button>
+        </div>
       </div>
 
-      {/* ChatGPT Live Chat - Only show when recipe is selected */}
-      {selectedRecipe && (
-        <ChatGPTLive 
-          recipe={selectedRecipe} 
-          isOpen={isChatOpen} 
-          onClose={() => setIsChatOpen(false)}
-          language="fr" // Default to French, can be made dynamic later
-        />
-      )}
+      {/* ChatGPT Live Chat */}
+      <ChatGPTLive 
+        recipe={selectedRecipe || { title: "Test Recipe", cuisine: "Test" }} 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
+      />
 
       {/* Floating Chat Button for Mobile */}
       {selectedRecipe && (

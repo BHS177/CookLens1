@@ -20,7 +20,6 @@ interface ChatGPTLiveProps {
   recipe: any
   isOpen: boolean
   onClose: () => void
-  language?: 'fr' | 'en'
 }
 
 interface Message {
@@ -30,12 +29,11 @@ interface Message {
   timestamp: Date
 }
 
-export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }: ChatGPTLiveProps) {
+export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isVoiceMode, setIsVoiceMode] = useState(false)
-  const [isCallMode, setIsCallMode] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
@@ -43,50 +41,6 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null)
-
-  // Translations
-  const t = {
-    fr: {
-      welcome: `Bonjour ! Je suis votre assistant culinaire ChatGPT. Je peux vous aider avec la recette "${recipe?.title}". Vous pouvez me poser des questions sur les ingrédients, les techniques de cuisson, les substitutions, ou tout autre aspect de cette recette. Comment puis-je vous aider ?`,
-      placeholder: {
-        text: "Tapez votre message...",
-        voice: "Mode vocal activé - cliquez sur le micro",
-        call: "Mode appel activé - parlez directement"
-      },
-      send: "Envoyer",
-      chatTitle: "ChatGPT Live",
-      assistant: "Assistant culinaire",
-      voiceMode: "Mode vocal",
-      callMode: "Mode appel",
-      mute: "Désactiver le son",
-      unmute: "Activer le son",
-      speaking: "ChatGPT parle...",
-      callActive: "Mode appel actif",
-      stop: "Arrêter",
-      error: "Désolé, je rencontre un problème technique. Veuillez réessayer."
-    },
-    en: {
-      welcome: `Hello! I'm your culinary assistant ChatGPT. I can help you with the recipe "${recipe?.title}". You can ask me questions about ingredients, cooking techniques, substitutions, or any other aspect of this recipe. How can I help you?`,
-      placeholder: {
-        text: "Type your message...",
-        voice: "Voice mode activated - click the microphone",
-        call: "Call mode activated - speak directly"
-      },
-      send: "Send",
-      chatTitle: "ChatGPT Live",
-      assistant: "Culinary Assistant",
-      voiceMode: "Voice mode",
-      callMode: "Call mode",
-      mute: "Mute sound",
-      unmute: "Unmute sound",
-      speaking: "ChatGPT is speaking...",
-      callActive: "Call mode active",
-      stop: "Stop",
-      error: "Sorry, I'm experiencing a technical issue. Please try again."
-    }
-  }
-
-  const texts = t[language]
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -102,12 +56,12 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
       const welcomeMessage: Message = {
         id: 'welcome',
         type: 'assistant',
-        content: texts.welcome,
+        content: `Bonjour ! Je suis votre assistant culinaire ChatGPT. Je peux vous aider avec la recette "${recipe.title}". Vous pouvez me poser des questions sur les ingrédients, les techniques de cuisson, les substitutions, ou tout autre aspect de cette recette. Comment puis-je vous aider ?`,
         timestamp: new Date()
       }
       setMessages([welcomeMessage])
     }
-  }, [isOpen, recipe, texts.welcome])
+  }, [isOpen, recipe])
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return
@@ -132,8 +86,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
         body: JSON.stringify({
           message: content,
           recipe: recipe,
-          conversationHistory: messages,
-          language: language
+          conversationHistory: messages
         })
       })
 
@@ -162,7 +115,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: texts.error,
+        content: 'Désolé, je rencontre un problème technique. Veuillez réessayer.',
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -181,14 +134,16 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
     recognitionRef.current = new SpeechRecognition()
     recognitionRef.current.continuous = false
     recognitionRef.current.interimResults = false
-    recognitionRef.current.lang = language === 'fr' ? 'fr-FR' : 'en-US'
+    recognitionRef.current.lang = 'fr-FR'
 
     recognitionRef.current.onstart = () => {
       setIsListening(true)
+      console.log('🎤 Voice recognition started')
     }
 
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript
+      console.log('🎤 Transcript:', transcript)
       setInputMessage(transcript)
       sendMessage(transcript)
     }
@@ -200,10 +155,12 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
 
     recognitionRef.current.onend = () => {
       setIsListening(false)
+      console.log('🎤 Voice recognition ended')
     }
 
     recognitionRef.current.start()
   }
+
 
   const stopVoiceRecognition = () => {
     if (recognitionRef.current) {
@@ -216,20 +173,26 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
     if (isMuted) return
 
     // Arrêter la lecture précédente
-    if (synthesisRef.current) {
-      window.speechSynthesis.cancel()
-    }
+    window.speechSynthesis.cancel()
 
     const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US'
-    utterance.rate = 0.9
+    utterance.lang = 'fr-FR'
+    utterance.rate = 0.8
     utterance.pitch = 1
+    utterance.volume = 1
 
     utterance.onstart = () => {
       setIsSpeaking(true)
+      console.log('🔊 ChatGPT speaking:', text.substring(0, 50) + '...')
     }
 
     utterance.onend = () => {
+      setIsSpeaking(false)
+      console.log('🔊 ChatGPT finished speaking')
+    }
+
+    utterance.onerror = (event) => {
+      console.error('Erreur de synthèse vocale:', event.error)
       setIsSpeaking(false)
     }
 
@@ -248,13 +211,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
   }
 
   const toggleVoiceMode = () => {
-    setIsVoiceMode(!isVoiceMode)
-    if (isCallMode) setIsCallMode(false)
-  }
-
-  const toggleCallMode = () => {
-    setIsCallMode(!isCallMode)
-    if (isVoiceMode) setIsVoiceMode(false)
+    if (isListening) {
+      stopVoiceRecognition()
+    } else {
+      startVoiceRecognition()
+    }
   }
 
   // Debug log
@@ -285,8 +246,8 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
                 <Bot className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">{texts.chatTitle}</h3>
-                <p className="text-sm text-gray-500">{texts.assistant}</p>
+                <h3 className="font-semibold text-gray-900">ChatGPT Live</h3>
+                <p className="text-sm text-gray-500">Assistant culinaire</p>
               </div>
             </div>
             
@@ -294,21 +255,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
               <button
                 onClick={toggleVoiceMode}
                 className={`p-2 rounded-lg transition-colors ${
-                  isVoiceMode ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                  isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-gray-100 text-gray-600'
                 }`}
-                title={texts.voiceMode}
+                title={isListening ? "Arrêter l'écoute" : "Parler à ChatGPT"}
               >
-                <Mic className="w-5 h-5" />
-              </button>
-              
-              <button
-                onClick={toggleCallMode}
-                className={`p-2 rounded-lg transition-colors ${
-                  isCallMode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                }`}
-                title={texts.callMode}
-              >
-                <Phone className="w-5 h-5" />
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </button>
               
               <button
@@ -316,7 +267,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
                 className={`p-2 rounded-lg transition-colors ${
                   isMuted ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
                 }`}
-                title={isMuted ? texts.unmute : texts.mute}
+                title={isMuted ? 'Activer le son' : 'Désactiver le son'}
               >
                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </button>
@@ -397,9 +348,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={
-                    isVoiceMode ? texts.placeholder.voice :
-                    isCallMode ? texts.placeholder.call :
-                    texts.placeholder.text
+                    isVoiceMode ? "Mode vocal activé - cliquez sur le micro" :
+                    isCallMode ? "Mode appel activé - parlez directement" :
+                    "Tapez votre message..."
                   }
                   className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
@@ -426,30 +377,30 @@ export default function ChatGPTLive({ recipe, isOpen, onClose, language = 'fr' }
                 className="px-6 py-3 bg-blue-500 text-white rounded-2xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
               >
                 <Send className="w-4 h-4" />
-                <span className="hidden sm:inline">{texts.send}</span>
+                <span className="hidden sm:inline">Envoyer</span>
               </button>
             </form>
             
-            {(isSpeaking || isCallMode) && (
+            {(isSpeaking || isListening) && (
               <div className="mt-2 flex items-center justify-center space-x-2 text-sm text-gray-600">
+                {isListening && (
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span>J'écoute...</span>
+                  </div>
+                )}
                 {isSpeaking && (
                   <div className="flex items-center space-x-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span>{texts.speaking}</span>
+                    <span>ChatGPT parle...</span>
+                    <button
+                      onClick={stopSpeaking}
+                      className="text-red-500 hover:text-red-700 ml-2"
+                    >
+                      Arrêter
+                    </button>
                   </div>
                 )}
-                {isCallMode && (
-                  <div className="flex items-center space-x-1">
-                    <Phone className="w-4 h-4" />
-                    <span>{texts.callActive}</span>
-                  </div>
-                )}
-                <button
-                  onClick={stopSpeaking}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  {texts.stop}
-                </button>
               </div>
             )}
           </div>
