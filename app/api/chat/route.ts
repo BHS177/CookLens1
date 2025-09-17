@@ -4,29 +4,37 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, recipeTitle, context } = await request.json()
+    const { message, recipe } = await request.json()
 
     if (!OPENAI_API_KEY) {
       return NextResponse.json(
-        { message: 'API key not configured' },
+        { error: 'OpenAI API key not configured' },
         { status: 500 }
       )
     }
 
-    const systemPrompt = `Tu es un assistant chef expert et un nutritionniste certifié. Tu aides l'utilisateur en temps réel pendant qu'il prépare la recette "${recipeTitle}".
+    const prompt = `Tu es un assistant culinaire expert et personnel. L'utilisateur te pose des questions sur cette recette spécifique :
 
-RÈGLES IMPORTANTES:
-- Réponds de manière concise et pratique (max 2-3 phrases)
-- Donne des conseils concrets et des astuces de chef
-- Sois encourageant et motivant
-- Aide avec les techniques de cuisson, les substitutions d'ingrédients, les ajustements de goût
-- Réponds en français, de manière naturelle et conversationnelle
-- Si l'utilisateur a un problème, propose des solutions immédiates
+RECETTE:
+- Titre: ${recipe.title}
+- Cuisine: ${recipe.cuisine}
+- Difficulté: ${recipe.difficulty}
+- Ingrédients: ${recipe.ingredients.map((ing: any) => `${ing.name} (${ing.amount} ${ing.unit})`).join(', ')}
+- Instructions: ${recipe.instructions.map((inst: any) => `${inst.step}. ${inst.instruction}`).join(' ')}
+- Nutrition (par portion): ${recipe.nutrition.calories} kcal, ${recipe.nutrition.protein}g protéines, ${recipe.nutrition.carbs}g glucides, ${recipe.nutrition.fat}g lipides
 
-CONTEXTE: ${context}
-RECETTE: ${recipeTitle}
+QUESTION DE L'UTILISATEUR: ${message}
 
-Réponds comme si tu étais un chef professionnel à ses côtés dans la cuisine.`
+RÉPONSE ATTENDUE:
+- Réponds de manière personnalisée et détaillée
+- Utilise les informations de la recette pour donner des conseils précis
+- Sois professionnel mais accessible
+- Donne des conseils pratiques et des astuces
+- Si la question concerne des substitutions, propose des alternatives réalistes
+- Si c'est une question technique, explique clairement les méthodes
+- Reste dans le contexte de cette recette spécifique
+
+Réponds en français, de manière concise mais complète.`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -39,14 +47,14 @@ Réponds comme si tu étais un chef professionnel à ses côtés dans la cuisine
         messages: [
           {
             role: 'system',
-            content: systemPrompt
+            content: prompt
           },
           {
             role: 'user',
             content: message
           }
         ],
-        max_tokens: 200,
+        max_tokens: 1000,
         temperature: 0.7,
       }),
     })
@@ -56,16 +64,14 @@ Réponds comme si tu étais un chef professionnel à ses côtés dans la cuisine
     }
 
     const data = await response.json()
-    const assistantMessage = data.choices[0]?.message?.content || 'Désolé, je ne peux pas répondre pour le moment.'
+    const assistantMessage = data.choices[0]?.message?.content || 'Désolé, je n\'ai pas pu générer de réponse.'
 
-    return NextResponse.json({
-      message: assistantMessage
-    })
+    return NextResponse.json({ message: assistantMessage })
 
   } catch (error) {
     console.error('Chat API error:', error)
     return NextResponse.json(
-      { message: 'Erreur lors de la communication avec l\'assistant' },
+      { error: 'Failed to process chat message' },
       { status: 500 }
     )
   }
