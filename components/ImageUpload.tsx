@@ -7,9 +7,10 @@ import { useLanguage } from '@/contexts/LanguageContext'
 
 interface ImageUploadProps {
   onImageUpload: (imageUrl: string) => void
+  onSkipDetection?: () => void
 }
 
-export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
+export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -231,6 +232,21 @@ export default function ImageUpload({ onImageUpload }: ImageUploadProps) {
                   💡 {t('home.upload.mobileTip')}
                 </p>
               </div>
+              
+              {/* Skip Detection Button */}
+              {onSkipDetection && (
+                <div className="pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Ou ajoutez vos ingrédients manuellement
+                  </p>
+                  <button
+                    onClick={onSkipDetection}
+                    className="text-primary-600 hover:text-primary-700 text-sm font-medium underline transition-colors duration-200"
+                  >
+                    Ajouter les ingrédients manuellement →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : (

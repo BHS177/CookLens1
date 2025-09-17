@@ -27,6 +27,13 @@ export default function HomePage() {
     setCurrentStep('detect')
   }
 
+  const handleSkipDetection = () => {
+    setUploadedImage(null)
+    setDetectedIngredients([])
+    setRecipePreferences(null)
+    setCurrentStep('preferences')
+  }
+
   const handleIngredientsDetected = (ingredients: DetectedIngredient[]) => {
     setDetectedIngredients(ingredients)
     setCurrentStep('preferences')
@@ -107,7 +114,7 @@ export default function HomePage() {
         {/* Main Flow */}
         <div className="max-w-4xl mx-auto">
           {currentStep === 'upload' && (
-            <ImageUpload onImageUpload={handleImageUpload} />
+            <ImageUpload onImageUpload={handleImageUpload} onSkipDetection={handleSkipDetection} />
           )}
           
           {currentStep === 'detect' && uploadedImage && (
@@ -118,15 +125,15 @@ export default function HomePage() {
             />
           )}
           
-          {currentStep === 'preferences' && detectedIngredients.length > 0 && (
+          {currentStep === 'preferences' && (
             <CuisinePreferenceSelector
               ingredients={detectedIngredients}
               onPreferencesSet={handlePreferencesSet}
-              onBack={handleBackToDetection}
+              onBack={detectedIngredients.length > 0 ? handleBackToDetection : () => setCurrentStep('upload')}
             />
           )}
           
-          {currentStep === 'recipes' && detectedIngredients.length > 0 && recipePreferences && (
+          {currentStep === 'recipes' && recipePreferences && (
             <RecipeGenerator
               ingredients={detectedIngredients}
               preferences={recipePreferences}

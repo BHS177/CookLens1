@@ -181,10 +181,18 @@ export default function CuisinePreferenceSelector({
 
       {/* Editable Ingredients */}
       <div className="bg-gray-50 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Ingrédients détectés :</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">
+          {editableIngredients.length > 0 ? 'Ingrédients détectés :' : 'Ajoutez vos ingrédients :'}
+        </h3>
         
         {/* Ingredients List */}
         <div className="flex flex-wrap gap-2 mb-4">
+          {editableIngredients.length === 0 && (
+            <div className="w-full text-center py-8 text-gray-500">
+              <p className="text-sm mb-2">Aucun ingrédient ajouté pour le moment</p>
+              <p className="text-xs">Utilisez le champ ci-dessous pour ajouter vos ingrédients</p>
+            </div>
+          )}
           {editableIngredients.map((ingredient) => (
             <div
               key={ingredient.id}
