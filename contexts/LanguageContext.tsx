@@ -393,7 +393,7 @@ const translations = {
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('en')
 
-  // Charger la langue depuis localStorage au montage
+  // Load language from localStorage on mount
   useEffect(() => {
     const savedLanguage = localStorage.getItem('cooklens-language') as Language
     if (savedLanguage && (savedLanguage === 'fr' || savedLanguage === 'en')) {
@@ -401,17 +401,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Sauvegarder la langue dans localStorage quand elle change
+  // Save language to localStorage when it changes
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
     localStorage.setItem('cooklens-language', lang)
   }
 
-  // Fonction de traduction avec support des variables
+  // Translation function with variable support
   const t = (key: string, variables?: Record<string, string | number>): string => {
     let translation = translations[language][key as keyof typeof translations[typeof language]] || key
     
-    // Remplacer les variables dans la traduction
+    // Replace variables in translation
     if (variables) {
       Object.entries(variables).forEach(([varKey, varValue]) => {
         translation = translation.replace(`{${varKey}}`, String(varValue))

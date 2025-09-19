@@ -74,12 +74,12 @@ export default function Navigation() {
               <SignedOut>
                 <SignInButton mode="modal">
                   <button className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 font-medium">
-                    Sign In
+                    Se connecter
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal">
                   <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
-                    Sign Up
+                    S&apos;inscrire
                   </button>
                 </SignUpButton>
               </SignedOut>
@@ -99,7 +99,7 @@ export default function Navigation() {
                     onClick={handleSignOut}
                     className="text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium text-sm"
                   >
-                    Sign Out
+                    Se déconnecter
                   </button>
                 </div>
               </SignedIn>
@@ -154,19 +154,19 @@ export default function Navigation() {
                 <SignedOut>
                   <SignInButton mode="modal">
                     <button className="w-full text-left text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 font-medium">
-                      Sign In
+                      Se connecter
                     </button>
                   </SignInButton>
                   <SignUpButton mode="modal">
                     <button className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
-                      Sign Up
+                      S&apos;inscrire
                     </button>
                   </SignUpButton>
                 </SignedOut>
                 <SignedIn>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 font-medium">My Account</span>
+                      <span className="text-gray-600 font-medium">Mon compte</span>
                       <UserButton 
                         appearance={{
                           elements: {
@@ -182,7 +182,7 @@ export default function Navigation() {
                       onClick={handleSignOut}
                       className="w-full text-left text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium"
                     >
-                      Sign Out
+                      Se déconnecter
                     </button>
                   </div>
                 </SignedIn>

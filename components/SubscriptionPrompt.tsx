@@ -100,7 +100,7 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
 
         <div className="bg-gray-50 rounded-xl p-4 mb-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 mb-1">3€</div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">€3</div>
             <div className="text-sm text-gray-600">per month</div>
             <div className="text-xs text-gray-500 mt-1">
               Cancel anytime
@@ -114,7 +114,7 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
             disabled={isLoading}
             className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Redirecting...' : 'Start Now'}
+            {isLoading ? 'Redirecting...' : 'Start now'}
           </button>
           <button
             onClick={onClose}

@@ -63,7 +63,7 @@ export default function SimpleUserDashboard() {
         setPreferences(userData.preferences)
       } catch (err) {
         console.error('Error loading user data:', err)
-        setError('Erreur lors du chargement des données')
+        setError('Error loading data')
       } finally {
         setLoading(false)
       }
@@ -93,13 +93,13 @@ export default function SimpleUserDashboard() {
   }, [user, isLoaded])
 
   const handleDeleteRecipe = async (recipeId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette recette ?')) {
+    if (confirm('Are you sure you want to delete this recipe?')) {
       if (user) {
         const success = await removeRecipe(user.id, recipeId)
         if (success) {
           setSavedRecipes(prev => prev.filter(recipe => recipe.id !== recipeId))
         } else {
-          alert('Erreur lors de la suppression de la recette')
+          alert('Error deleting recipe')
         }
       }
     }
@@ -133,7 +133,7 @@ export default function SimpleUserDashboard() {
   }
 
   const handleCancelSubscription = async () => {
-    if (!confirm('Êtes-vous sûr de vouloir annuler votre abonnement ? Vous perdrez immédiatement l\'accès aux fonctionnalités Pro.')) {
+    if (!confirm('Are you sure you want to cancel your subscription? You will immediately lose access to Pro features.')) {
       return
     }
 
@@ -153,13 +153,13 @@ export default function SimpleUserDashboard() {
         const subscriptionResponse = await fetch('/api/subscription/details')
         const subscriptionData = await subscriptionResponse.json()
         setSubscription(subscriptionData.subscription)
-        alert('Votre abonnement a été annulé. Vous n\'avez plus accès aux fonctionnalités Pro.')
+        alert('Your subscription has been cancelled. You no longer have access to Pro features.')
       } else {
-        alert('Erreur lors de l\'annulation de l\'abonnement: ' + (data.error || 'Erreur inconnue'))
+        alert('Error cancelling subscription: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error)
-      alert('Erreur lors de l\'annulation de l\'abonnement')
+      alert('Error cancelling subscription')
     } finally {
       setCancelling(false)
     }
@@ -180,11 +180,11 @@ export default function SimpleUserDashboard() {
         // Redirect to Stripe checkout
         window.location.href = data.url
       } else {
-        alert('Erreur lors de la création de la session de paiement: ' + (data.error || 'Erreur inconnue'))
+        alert('Error creating payment session: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
-      alert('Erreur lors de la création de la session de paiement')
+      alert('Error creating payment session')
     }
   }
 
@@ -200,8 +200,8 @@ export default function SimpleUserDashboard() {
     return (
       <div className="text-center py-12">
         <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Connexion requise</h3>
-        <p className="text-gray-600">Connectez-vous pour accéder à votre tableau de bord</p>
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">Login required</h3>
+        <p className="text-gray-600">Please log in to access your dashboard</p>
       </div>
     )
   }
@@ -212,9 +212,9 @@ export default function SimpleUserDashboard() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-2 sm:space-x-8 overflow-x-auto">
           {[
-            { id: 'overview', name: 'Vue', icon: TrendingUp },
-            { id: 'recipes', name: 'Mes recettes', icon: BookOpen },
-            { id: 'preferences', name: 'Préférences', icon: Settings },
+            { id: 'overview', name: 'Overview', icon: TrendingUp },
+            { id: 'recipes', name: 'My Recipes', icon: BookOpen },
+            { id: 'preferences', name: 'Preferences', icon: Settings },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -245,7 +245,7 @@ export default function SimpleUserDashboard() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Recettes sauvegardées
+                      Saved Recipes
                     </dt>
                     <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {savedRecipes.length}
@@ -263,7 +263,7 @@ export default function SimpleUserDashboard() {
                 <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Favoris
+                      Favorites
                     </dt>
                     <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {savedRecipes.filter(r => r.isFavorite).length}
@@ -310,7 +310,7 @@ export default function SimpleUserDashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">Abonnement actif</span>
+                      <span className="text-sm font-medium text-gray-900">Active subscription</span>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       Pro
@@ -319,27 +319,27 @@ export default function SimpleUserDashboard() {
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <dt className="text-xs font-medium text-gray-500">Prix</dt>
+                      <dt className="text-xs font-medium text-gray-500">Price</dt>
                       <dd className="text-sm text-gray-900">
-                        {(subscription.price / 100).toFixed(2)}€ / {subscription.interval === 'month' ? 'mois' : 'an'}
+                        {(subscription.price / 100).toFixed(2)}€ / {subscription.interval === 'month' ? 'month' : 'year'}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-medium text-gray-500">Statut</dt>
+                      <dt className="text-xs font-medium text-gray-500">Status</dt>
                       <dd className="text-sm text-gray-900 capitalize">
-                        {subscription.status === 'active' ? 'Actif' : subscription.status}
+                        {subscription.status === 'active' ? 'Active' : subscription.status}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-medium text-gray-500">Fin de période</dt>
+                      <dt className="text-xs font-medium text-gray-500">End of period</dt>
                       <dd className="text-sm text-gray-900">
                         {formatDate(subscription.currentPeriodEnd)}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-medium text-gray-500">Jours restants</dt>
+                      <dt className="text-xs font-medium text-gray-500">Days remaining</dt>
                       <dd className="text-sm text-gray-900">
-                        {getDaysUntilExpiry(subscription.currentPeriodEnd)} jours
+                        {getDaysUntilExpiry(subscription.currentPeriodEnd)} days
                       </dd>
                     </div>
                   </div>
@@ -353,12 +353,12 @@ export default function SimpleUserDashboard() {
                       {cancelling ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Annulation...
+                          Cancelling...
                         </>
                       ) : (
                         <>
                           <XCircle className="w-4 h-4 mr-2" />
-                          Annuler l&apos;abonnement
+                          Cancel subscription
                         </>
                       )}
                     </button>
@@ -367,9 +367,9 @@ export default function SimpleUserDashboard() {
               ) : (
                 <div className="text-center py-4">
                   <XCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="text-sm font-medium text-gray-900 mb-1">Aucun abonnement actif</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">No active subscription</h4>
                   <p className="text-sm text-gray-500 mb-4">
-                    Passez à CookLens Pro pour débloquer toutes les fonctionnalités
+                    Upgrade to CookLens Pro to unlock all features
                   </p>
                   <button 
                     onClick={handleSubscribe}
@@ -385,11 +385,11 @@ export default function SimpleUserDashboard() {
 
           <div className="bg-white rounded-lg shadow">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">Recettes récentes</h3>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">Recent recipes</h3>
             </div>
             <div className="p-4 sm:p-6">
               {savedRecipes.slice(0, 5).length === 0 ? (
-                <p className="text-gray-500 text-center py-4 text-sm sm:text-base">Aucune recette sauvegardée</p>
+                <p className="text-gray-500 text-center py-4 text-sm sm:text-base">No saved recipes</p>
               ) : (
                 <div className="space-y-2 sm:space-y-3">
                   {savedRecipes.slice(0, 5).map((recipe) => (
@@ -426,7 +426,7 @@ export default function SimpleUserDashboard() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Rechercher une recette..."
+                placeholder="Search for a recipe..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -489,12 +489,12 @@ export default function SimpleUserDashboard() {
             <div className="text-center py-12">
               <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchQuery ? 'Aucune recette trouvée' : 'Aucune recette sauvegardée'}
+                {searchQuery ? 'No recipes found' : 'No saved recipes'}
               </h3>
               <p className="text-gray-600">
                 {searchQuery 
-                  ? 'Essayez de modifier vos critères de recherche.'
-                  : 'Commencez par sauvegarder votre première recette !'
+                  ? 'Try modifying your search criteria.'
+                  : 'Start by saving your first recipe!'
                 }
               </p>
             </div>
@@ -538,15 +538,15 @@ export default function SimpleUserDashboard() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Synchronisation</h3>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Synchronization</h3>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full flex-shrink-0"></div>
               <span className="text-xs sm:text-sm text-gray-600">
-                Vos données sont synchronisées sur tous vos appareils
+                Your data is synchronized across all your devices
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Connectez-vous avec le même compte Clerk sur n&apos;importe quel appareil pour accéder à vos recettes.
+              Log in with the same Clerk account on any device to access your recipes.
             </p>
           </div>
         </div>

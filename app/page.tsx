@@ -90,24 +90,24 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Camera className="w-8 h-8 text-primary-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Photo</h3>
-            <p className="text-gray-600">Automatic ingredient detection in your fridge</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Photo intelligente</h3>
+            <p className="text-gray-600">Détection automatique des ingrédients dans votre frigo</p>
           </div>
           
           <div className="text-center p-6">
             <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-primary-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Recipes</h3>
-            <p className="text-gray-600">Personalized recipe generation with ChefGPT</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Recettes IA</h3>
+            <p className="text-gray-600">Génération de recettes personnalisées avec ChefGPT</p>
           </div>
           
           <div className="text-center p-6">
             <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Zap className="w-8 h-8 text-primary-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Advanced Filters</h3>
-            <p className="text-gray-600">Cuisine, diet and preferences</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Filtres avancés</h3>
+            <p className="text-gray-600">Cuisine, régime alimentaire et préférences</p>
           </div>
         </motion.div>
 
