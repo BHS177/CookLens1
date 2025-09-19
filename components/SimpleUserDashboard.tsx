@@ -277,18 +277,6 @@ export default function SimpleUserDashboard() {
                         {subscription.status === 'active' ? 'Active' : subscription.status}
                       </dd>
                     </div>
-                    <div>
-                      <dt className="text-xs font-medium text-gray-500">End of period</dt>
-                      <dd className="text-sm text-gray-900">
-                        {formatDate(subscription.currentPeriodEnd)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs font-medium text-gray-500">Days remaining</dt>
-                      <dd className="text-sm text-gray-900">
-                        {getDaysUntilExpiry(subscription.currentPeriodEnd)} days
-                      </dd>
-                    </div>
                   </div>
 
                   <div className="flex justify-end pt-4">
