@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?subscription=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?subscription=cancelled`,
+      success_url: `${request.nextUrl.origin}/settings?subscription=success`,
+      cancel_url: `${request.nextUrl.origin}/settings?subscription=cancelled`,
     })
 
     console.log('Checkout session created:', session.id)
