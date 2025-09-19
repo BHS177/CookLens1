@@ -30,12 +30,12 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
         window.location.href = data.url
       } else {
         console.error('No checkout URL received:', data)
-        const errorMsg = data.details || data.error || 'Erreur inconnue'
-        alert(`Erreur: Impossible de créer la session de paiement.\n\nDétails: ${errorMsg}`)
+        const errorMsg = data.details || data.error || 'Unknown error'
+        alert(`Error: Unable to create payment session.\n\nDetails: ${errorMsg}`)
       }
     } catch (error) {
       console.error('Error creating checkout session:', error)
-      alert(`Erreur: Impossible de se connecter au serveur de paiement.\n\nDétails: ${error}`)
+      alert(`Error: Unable to connect to payment server.\n\nDetails: ${error}`)
     } finally {
       setIsLoading(false)
     }
@@ -44,18 +44,18 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
   const features = [
     {
       icon: Camera,
-      title: 'Photos illimitées',
-      description: 'Prenez autant de photos que vous voulez de votre frigo'
+      title: 'Unlimited Photos',
+      description: 'Take as many photos as you want of your fridge'
     },
     {
       icon: Sparkles,
-      title: 'IA avancée',
-      description: 'Détection d\'ingrédients et génération de recettes illimitées'
+      title: 'Advanced AI',
+      description: 'Unlimited ingredient detection and recipe generation'
     },
     {
       icon: Crown,
-      title: 'Support prioritaire',
-      description: 'Aide et support en priorité pour tous vos besoins culinaires'
+      title: 'Priority Support',
+      description: 'Priority help and support for all your culinary needs'
     }
   ]
 
@@ -77,10 +77,10 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
             <Crown className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Passez à CookLens Pro
+            Upgrade to CookLens Pro
           </h2>
           <p className="text-gray-600">
-            Débloquez toutes les fonctionnalités pour seulement 3€/mois
+            Unlock all features for just €3/month
           </p>
         </div>
 
@@ -101,9 +101,9 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
         <div className="bg-gray-50 rounded-xl p-4 mb-6">
           <div className="text-center">
             <div className="text-3xl font-bold text-gray-900 mb-1">3€</div>
-            <div className="text-sm text-gray-600">par mois</div>
+            <div className="text-sm text-gray-600">per month</div>
             <div className="text-xs text-gray-500 mt-1">
-              Annulation possible à tout moment
+              Cancel anytime
             </div>
           </div>
         </div>
@@ -114,19 +114,19 @@ export default function SubscriptionPrompt({ onClose }: SubscriptionPromptProps)
             disabled={isLoading}
             className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Redirection...' : 'Commencer maintenant'}
+            {isLoading ? 'Redirecting...' : 'Start Now'}
           </button>
           <button
             onClick={onClose}
             className="flex-1 sm:flex-none bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors duration-200"
           >
-            Plus tard
+            Later
           </button>
         </div>
 
         <div className="text-center mt-4">
           <p className="text-xs text-gray-500">
-            Paiement sécurisé par Stripe • Annulation à tout moment
+            Secure payment by Stripe • Cancel anytime
           </p>
         </div>
       </motion.div>

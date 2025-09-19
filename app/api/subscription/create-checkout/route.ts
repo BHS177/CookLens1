@@ -52,15 +52,6 @@ export async function POST(request: NextRequest) {
       console.log('Created customer:', customer.id)
     }
 
-    // Get app URL with fallback
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cooklens.vercel.app'
-    console.log('App URL:', appUrl)
-    
-    // Validate URL format
-    if (!appUrl.startsWith('http://') && !appUrl.startsWith('https://')) {
-      throw new Error(`Invalid APP_URL format: ${appUrl}. Must include https:// or http://`)
-    }
-
     // Create checkout session
     console.log('Creating checkout session...')
     const session = await stripe.checkout.sessions.create({
@@ -83,8 +74,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${appUrl}/settings?subscription=success`,
-      cancel_url: `${appUrl}/settings?subscription=cancelled`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?subscription=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?subscription=cancelled`,
     })
 
     console.log('Checkout session created:', session.id)
