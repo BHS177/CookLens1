@@ -381,7 +381,7 @@ export default function CuisinePreferenceSelector({
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Globe className="w-5 h-5 mr-2 text-primary-600" />
-                Choisissez un pays
+                Choose a Country
               </h3>
               
               {/* Search Input */}
@@ -424,8 +424,8 @@ export default function CuisinePreferenceSelector({
                 {/* Search Results Count */}
                 {countrySearch && (
                   <div className="mt-2 text-sm text-gray-600">
-                    {filteredCountries.length} pays trouvé{filteredCountries.length > 1 ? 's' : ''}
-                    {filteredCountries.length === 0 && ' - Aucun pays trouvé'}
+                    {filteredCountries.length} countr{filteredCountries.length > 1 ? 'ies' : 'y'} found
+                    {filteredCountries.length === 0 && ' - No countries found'}
                   </div>
                 )}
               </div>
@@ -436,14 +436,14 @@ export default function CuisinePreferenceSelector({
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Clock className="w-5 h-5 mr-2 text-primary-600" />
-              Temps de cuisine
+              Cooking Time
             </h3>
             <div className="space-y-6">
               {/* Preparation Time */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    Temps de préparation
+                    Preparation Time
                   </label>
                   <span className="text-sm font-semibold text-primary-600">
                     {maxPrepTime} min
@@ -471,7 +471,7 @@ export default function CuisinePreferenceSelector({
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    Temps de cuisson
+                    Cooking Time
                   </label>
                   <span className="text-sm font-semibold text-primary-600">
                     {maxCookTime} min
@@ -499,7 +499,7 @@ export default function CuisinePreferenceSelector({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2 text-sm text-blue-800">
                   <Clock className="w-4 h-4" />
-                  <span className="font-medium">Temps total maximum : {maxPrepTime + maxCookTime} minutes</span>
+                  <span className="font-medium">Total maximum time: {maxPrepTime + maxCookTime} minutes</span>
                 </div>
               </div>
             </div>

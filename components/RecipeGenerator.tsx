@@ -157,7 +157,7 @@ export default function RecipeGenerator({
       console.log('✅ Generated suggestions:', generatedSuggestions.length)
     } catch (err) {
       console.error('❌ Error generating suggestions:', err)
-      setError(err instanceof Error ? err.message : 'Erreur lors de la génération des suggestions')
+      setError(err instanceof Error ? err.message : 'Error generating suggestions')
     } finally {
       setIsGenerating(false)
       onLoadingChange(false)
@@ -178,7 +178,7 @@ export default function RecipeGenerator({
       console.log('✅ Generated detailed recipe:', detailedRecipe.title)
     } catch (err) {
       console.error('❌ Error generating detailed recipe:', err)
-      setError(err instanceof Error ? err.message : 'Erreur lors de la génération de la recette détaillée')
+      setError(err instanceof Error ? err.message : 'Error generating detailed recipe')
     } finally {
       setIsGeneratingRecipe(false)
       onLoadingChange(false)
@@ -222,8 +222,8 @@ export default function RecipeGenerator({
               className="flex items-center space-x-1 sm:space-x-2 text-gray-600 hover:text-gray-900 transition-colors text-sm sm:text-base"
             >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Retour aux recettes</span>
-              <span className="sm:hidden">Retour</span>
+              <span className="hidden sm:inline">Back to Recipes</span>
+              <span className="sm:hidden">Back</span>
             </button>
             <div className="flex items-center space-x-1 sm:space-x-2">
               <button 
@@ -245,7 +245,7 @@ export default function RecipeGenerator({
                     handleOpenChat()
                   }}
                   className="p-1 sm:p-2 text-gray-600 hover:text-purple-600 transition-colors bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg hover:from-green-600 hover:to-blue-600 flex items-center space-x-1"
-                  title="Chat en direct avec ChatGPT (Pro)"
+                  title="Live Chat with ChatGPT (Pro)"
                 >
                   <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   <Crown className="w-3 h-3 text-yellow-400" />
@@ -265,7 +265,7 @@ export default function RecipeGenerator({
               </div>
               <div className="flex items-center space-x-1 text-gray-600">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>{selectedRecipe.servings} personnes</span>
+                <span>{selectedRecipe.servings} servings</span>
               </div>
               <div className="flex items-center space-x-1 text-gray-600">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -347,18 +347,18 @@ export default function RecipeGenerator({
 
           {/* Nutrition */}
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Valeurs nutritionnelles (par portion)</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Nutritional Values (per serving)</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: 'Calories', value: selectedRecipe.nutrition.calories, unit: 'kcal' },
-                { label: 'Protéines', value: selectedRecipe.nutrition.protein, unit: 'g' },
-                { label: 'Glucides', value: selectedRecipe.nutrition.carbs, unit: 'g' },
-                { label: 'Lipides', value: selectedRecipe.nutrition.fat, unit: 'g' },
-                { label: 'Fibres', value: selectedRecipe.nutrition.fiber, unit: 'g' },
-                { label: 'Sucre', value: selectedRecipe.nutrition.sugar, unit: 'g' },
+                { label: 'Protein', value: selectedRecipe.nutrition.protein, unit: 'g' },
+                { label: 'Carbs', value: selectedRecipe.nutrition.carbs, unit: 'g' },
+                { label: 'Fat', value: selectedRecipe.nutrition.fat, unit: 'g' },
+                { label: 'Fiber', value: selectedRecipe.nutrition.fiber, unit: 'g' },
+                { label: 'Sugar', value: selectedRecipe.nutrition.sugar, unit: 'g' },
                 { label: 'Sodium', value: selectedRecipe.nutrition.sodium, unit: 'mg' },
-                ...(selectedRecipe.nutrition.saturatedFat ? [{ label: 'Lipides saturés', value: selectedRecipe.nutrition.saturatedFat, unit: 'g' }] : []),
-                ...(selectedRecipe.nutrition.cholesterol ? [{ label: 'Cholestérol', value: selectedRecipe.nutrition.cholesterol, unit: 'mg' }] : []),
+                ...(selectedRecipe.nutrition.saturatedFat ? [{ label: 'Saturated Fat', value: selectedRecipe.nutrition.saturatedFat, unit: 'g' }] : []),
+                ...(selectedRecipe.nutrition.cholesterol ? [{ label: 'Cholesterol', value: selectedRecipe.nutrition.cholesterol, unit: 'mg' }] : []),
               ].map((nutrient) => (
                 <div key={nutrient.label} className="text-center p-4 bg-gray-50 rounded-xl">
                   <div className="text-2xl font-bold text-primary-600 mb-1">
@@ -386,11 +386,11 @@ export default function RecipeGenerator({
                 className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
               >
                 <MessageCircle className="w-6 h-6" />
-                <span className="text-lg font-semibold">💬 Chat avec ChatGPT sur cette recette</span>
+                <span className="text-lg font-semibold">💬 Chat with ChatGPT about this recipe</span>
                 <Crown className="w-5 h-5 text-yellow-400" />
               </button>
               <p className="text-sm text-gray-500 mt-3">
-                Posez des questions sur les ingrédients, techniques ou modifications
+                Ask questions about ingredients, techniques or modifications
               </p>
             </div>
           </div>
@@ -547,7 +547,7 @@ export default function RecipeGenerator({
                         <Crown className="w-2 h-2 text-yellow-500" />
                       </button>
                     )}
-                    <span className="text-primary-600 font-medium">Voir la recette</span>
+                    <span className="text-primary-600 font-medium">View Recipe</span>
                   </div>
                 </div>
                 
@@ -584,7 +584,7 @@ export default function RecipeGenerator({
             className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
           >
             <MessageCircle className="w-6 h-6" />
-            <span className="text-lg font-semibold">💬 Chat avec ChatGPT</span>
+            <span className="text-lg font-semibold">💬 Chat with ChatGPT</span>
             <Crown className="w-5 h-5 text-yellow-400" />
           </button>
         </div>
@@ -609,7 +609,7 @@ export default function RecipeGenerator({
             handleOpenChat()
           }}
           className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-green-500 to-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 md:hidden"
-          title="Chat avec ChatGPT"
+          title="Chat with ChatGPT"
         >
           <MessageCircle className="w-6 h-6" />
         </motion.button>
