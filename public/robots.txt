@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://fridge-ai.vercel.app/sitemap.xml
+Sitemap: https://cooklens.vercel.app/sitemap.xml
 

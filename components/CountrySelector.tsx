@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Globe, X } from 'lucide-react'
+import { Search, Globe, X, Crown, Lock } from 'lucide-react'
 import { countries, Country } from '@/data/countries'
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import { SignInButton } from '@clerk/nextjs'
+import SubscriptionPrompt from './SubscriptionPrompt'
 
 interface CountrySelectorProps {
   selectedCountry: Country | null
@@ -13,6 +16,9 @@ interface CountrySelectorProps {
 export default function CountrySelector({ selectedCountry, onCountrySelect }: CountrySelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false)
+  
+  const { isSubscribed } = useSubscription()
 
   const filteredCountries = countries.filter(country =>
     country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,6 +26,11 @@ export default function CountrySelector({ selectedCountry, onCountrySelect }: Co
   )
 
   const handleCountrySelect = (country: Country) => {
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
+    
     onCountrySelect(country)
     setIsOpen(false)
     setSearchTerm('')
@@ -31,6 +42,9 @@ export default function CountrySelector({ selectedCountry, onCountrySelect }: Co
 
   return (
     <div className="relative">
+      {showSubscriptionPrompt && (
+        <SubscriptionPrompt onClose={() => setShowSubscriptionPrompt(false)} />
+      )}
       <div className="card">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -73,10 +87,11 @@ export default function CountrySelector({ selectedCountry, onCountrySelect }: Co
         ) : (
           <button
             onClick={() => setIsOpen(true)}
-            className="w-full btn-primary text-lg py-4"
+            className="w-full btn-primary text-lg py-4 flex items-center justify-center"
           >
             <Globe className="w-5 h-5 mr-2" />
             Sélectionner une cuisine
+            <Crown className="w-4 h-4 ml-2 text-yellow-400" />
           </button>
         )}
       </div>

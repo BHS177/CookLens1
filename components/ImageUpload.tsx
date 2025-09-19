@@ -4,6 +4,10 @@ import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, Upload, X, Image as ImageIcon, Smartphone } from 'lucide-react'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useUser } from '@clerk/nextjs'
+import { SignInButton } from '@clerk/nextjs'
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import SubscriptionPrompt from './SubscriptionPrompt'
 
 interface ImageUploadProps {
   onImageUpload: (imageUrl: string) => void
@@ -13,9 +17,12 @@ interface ImageUploadProps {
 export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const { t } = useLanguage()
+  const { isSignedIn } = useUser()
+  const { isSubscribed, isLoading: subscriptionLoading } = useSubscription()
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
@@ -129,10 +136,24 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
   }
 
   const openFileDialog = () => {
+    if (!isSignedIn) {
+      return // Will be handled by SignInButton wrapper
+    }
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
     fileInputRef.current?.click()
   }
 
   const openCameraDialog = () => {
+    if (!isSignedIn) {
+      return // Will be handled by SignInButton wrapper
+    }
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
     cameraInputRef.current?.click()
   }
 
@@ -154,18 +175,18 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
       className="w-full"
     >
       <div className="card">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-6 px-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
             {t('home.upload.title')}
           </h2>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             L&apos;IA détectera automatiquement les ingrédients disponibles
           </p>
         </div>
 
         {!preview ? (
           <div
-            className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-colors duration-200 ${
+            className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-12 text-center transition-colors duration-200 ${
               dragActive
                 ? 'border-primary-400 bg-primary-50'
                 : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
@@ -191,35 +212,53 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
               className="hidden"
             />
             
-            <div className="space-y-6">
-              <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto">
-                <Camera className="w-8 h-8 text-primary-600" />
+            <div className="space-y-4 sm:space-y-6">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto">
+                <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-primary-600" />
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                   {t('upload.drag.title')}
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
                   {t('home.upload.subtitle')}
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button
-                    onClick={openCameraDialog}
-                    className="btn-primary inline-flex items-center justify-center space-x-2 px-6 py-3 text-base font-medium"
-                  >
-                    <Smartphone className="w-5 h-5" />
-                    <span>{t('home.upload.takePhoto')}</span>
-                  </button>
+                  {isSignedIn ? (
+                    <button
+                      onClick={openCameraDialog}
+                      className="btn-primary inline-flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-sm sm:text-base font-medium"
+                    >
+                      <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span>{t('home.upload.takePhoto')}</span>
+                    </button>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="btn-primary inline-flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-sm sm:text-base font-medium">
+                        <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>{t('home.upload.takePhoto')}</span>
+                      </button>
+                    </SignInButton>
+                  )}
                   
-                  <button
-                    onClick={openFileDialog}
-                    className="btn-secondary inline-flex items-center justify-center space-x-2 px-6 py-3 text-base font-medium"
-                  >
-                    <Upload className="w-5 h-5" />
-                    <span>{t('home.upload.chooseImage')}</span>
-                  </button>
+                  {isSignedIn ? (
+                    <button
+                      onClick={openFileDialog}
+                      className="btn-secondary inline-flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-sm sm:text-base font-medium"
+                    >
+                      <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span>{t('home.upload.chooseImage')}</span>
+                    </button>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button className="btn-secondary inline-flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-sm sm:text-base font-medium">
+                        <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>{t('home.upload.chooseImage')}</span>
+                      </button>
+                    </SignInButton>
+                  )}
                 </div>
               </div>
               
@@ -239,12 +278,22 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
                   <p className="text-sm text-gray-600 mb-3">
                     {t('upload.skip.title')}
                   </p>
-                  <button
-                    onClick={onSkipDetection}
-                    className="text-primary-600 hover:text-primary-700 text-sm font-medium underline transition-colors duration-200"
-                  >
-                    {t('upload.skip.button')}
-                  </button>
+                  {isSignedIn ? (
+                    <button
+                      onClick={onSkipDetection}
+                      className="text-primary-600 hover:text-primary-700 text-sm font-medium underline transition-colors duration-200"
+                    >
+                      {t('upload.skip.button')}
+                    </button>
+                  ) : (
+                    <SignInButton mode="modal">
+                      <button
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium underline transition-colors duration-200"
+                      >
+                        {t('upload.skip.button')}
+                      </button>
+                    </SignInButton>
+                  )}
                 </div>
               )}
             </div>
@@ -271,25 +320,48 @@ export default function ImageUpload({ onImageUpload, onSkipDetection }: ImageUpl
                 {t('upload.ready')}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={openCameraDialog}
-                  className="btn-primary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  <span>{t('home.upload.retakePhoto')}</span>
-                </button>
-                <button
-                  onClick={openFileDialog}
-                  className="btn-secondary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  <span>{t('home.upload.changeImage')}</span>
-                </button>
+                {isSignedIn ? (
+                  <button
+                    onClick={openCameraDialog}
+                    className="btn-primary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>{t('home.upload.retakePhoto')}</span>
+                  </button>
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="btn-primary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium">
+                      <Smartphone className="w-4 h-4" />
+                      <span>{t('home.upload.retakePhoto')}</span>
+                    </button>
+                  </SignInButton>
+                )}
+                {isSignedIn ? (
+                  <button
+                    onClick={openFileDialog}
+                    className="btn-secondary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium"
+                  >
+                    <ImageIcon className="w-4 h-4" />
+                    <span>{t('home.upload.changeImage')}</span>
+                  </button>
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="btn-secondary inline-flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium">
+                      <ImageIcon className="w-4 h-4" />
+                      <span>{t('home.upload.changeImage')}</span>
+                    </button>
+                  </SignInButton>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+      
+      {/* Subscription Prompt */}
+      {showSubscriptionPrompt && (
+        <SubscriptionPrompt onClose={() => setShowSubscriptionPrompt(false)} />
+      )}
     </motion.div>
   )
 }

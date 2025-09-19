@@ -395,7 +395,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   // Charger la langue depuis localStorage au montage
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('fridge-ai-language') as Language
+    const savedLanguage = localStorage.getItem('cooklens-language') as Language
     if (savedLanguage && (savedLanguage === 'fr' || savedLanguage === 'en')) {
       setLanguage(savedLanguage)
     }
@@ -404,7 +404,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Sauvegarder la langue dans localStorage quand elle change
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
-    localStorage.setItem('fridge-ai-language', lang)
+    localStorage.setItem('cooklens-language', lang)
   }
 
   // Fonction de traduction avec support des variables

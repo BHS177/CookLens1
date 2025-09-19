@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react'
+import { ChefHat, Globe, Clock, ArrowRight, ArrowLeft, Plus, Edit2, Trash2, Check, X, AlertCircle, Crown, Lock } from 'lucide-react'
 import { DetectedIngredient, UserPreferences } from '@/types'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import { SignInButton } from '@clerk/nextjs'
+import SubscriptionPrompt from './SubscriptionPrompt'
 
 interface CuisinePreferenceSelectorProps {
   ingredients: DetectedIngredient[]
@@ -18,7 +21,9 @@ export default function CuisinePreferenceSelector({
   onBack
 }: CuisinePreferenceSelectorProps) {
   const { t } = useLanguage()
-  const [chefMode, setChefMode] = useState<'expert' | 'country' | 'simple'>('country')
+  const { isSubscribed } = useSubscription()
+  const [chefMode, setChefMode] = useState<'expert' | 'country' | 'simple'>('expert')
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false)
   const [selectedCountry, setSelectedCountry] = useState<string>('')
   const [countrySearch, setCountrySearch] = useState<string>('')
   const [maxPrepTime, setMaxPrepTime] = useState<number>(60)
@@ -186,6 +191,12 @@ export default function CuisinePreferenceSelector({
   }
 
   const handleChefModeChange = (mode: 'expert' | 'country' | 'simple') => {
+    // Restrict country mode to Pro users
+    if (mode === 'country' && !isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
+    
     setChefMode(mode)
     // Clear error when chef mode changes away from country
     if (mode !== 'country') {
@@ -202,9 +213,13 @@ export default function CuisinePreferenceSelector({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <>
+      {showSubscriptionPrompt && (
+        <SubscriptionPrompt onClose={() => setShowSubscriptionPrompt(false)} />
+      )}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       className="max-w-4xl mx-auto space-y-8"
     >
@@ -350,8 +365,11 @@ export default function CuisinePreferenceSelector({
                   onChange={(e) => handleChefModeChange(e.target.value as any)}
                   className="w-4 h-4 text-primary-600"
                 />
-                <div>
-                  <div className="font-medium">{t('preferences.chef.country')}</div>
+                <div className="flex-1">
+                  <div className="font-medium flex items-center">
+                    {t('preferences.chef.country')}
+                    <Crown className="w-4 h-4 ml-2 text-yellow-500" />
+                  </div>
                   <div className="text-sm text-gray-600">{t('preferences.chef.country.desc')}</div>
                 </div>
               </label>
@@ -584,5 +602,6 @@ export default function CuisinePreferenceSelector({
         </button>
       </div>
     </motion.div>
+    </>
   )
 }

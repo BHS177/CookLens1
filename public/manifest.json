@@ -1,6 +1,6 @@
 {
-  "name": "Fridge AI - Découvrez des recettes avec vos ingrédients",
-  "short_name": "Fridge AI",
+  "name": "CookLens - Découvrez des recettes avec vos ingrédients",
+  "short_name": "CookLens",
   "description": "Prenez une photo de votre frigo et découvrez des recettes personnalisées avec l'IA",
   "start_url": "/",
   "display": "standalone",

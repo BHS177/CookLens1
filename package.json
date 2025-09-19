@@ -1,5 +1,5 @@
 {
-  "name": "fridge-ai",
+  "name": "cooklens",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,14 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
+    "@clerk/nextjs": "^6.32.0",
+    "@frontegg/react": "^7.12.7",
+    "@prisma/client": "^6.16.2",
+    "@stripe/stripe-js": "^7.9.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/next-auth": "^3.13.0",
+    "bcryptjs": "^3.0.2",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.0.0",
+    "firebase": "^12.2.1",
     "form-data": "^4.0.4",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
+    "next-auth": "^4.24.11",
     "node-fetch": "^3.3.2",
+    "nodemailer": "^6.10.1",
+    "prisma": "^6.16.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "stripe": "^18.5.0",
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
@@ -31,4 +46,3 @@
     "typescript": "^5.3.3"
   }
 }
-

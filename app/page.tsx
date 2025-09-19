@@ -68,18 +68,18 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
         >
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-900 mb-4 md:mb-6 px-4">
             {t('home.title').split(' ').slice(0, 2).join(' ')}
             <span className="text-primary-600 block">{t('home.title').split(' ').slice(2).join(' ')}</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-6 md:mb-8 px-4">
             {t('home.subtitle')}
           </p>
         </motion.div>
 
-        {/* Features Grid - Hidden on mobile */}
+        {/* Features Grid - Desktop */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -110,6 +110,7 @@ export default function HomePage() {
             <p className="text-gray-600">Cuisine, régime alimentaire et préférences</p>
           </div>
         </motion.div>
+
 
         {/* Main Flow */}
         <div className="max-w-4xl mx-auto">

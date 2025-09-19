@@ -25,6 +25,7 @@ export interface Recipe {
   instructions: RecipeStep[]
   nutrition: NutritionInfo
   imageUrl?: string
+  tags?: string[]
   createdAt: Date
 }
 
@@ -96,8 +97,23 @@ export interface UserPreferences {
   modifiedIngredients?: DetectedIngredient[]
 }
 
-export interface SavedRecipe extends Recipe {
+export interface SavedRecipe {
+  id: string
+  title: string
+  description: string
+  ingredients: string[]
+  instructions: string[]
+  prepTime: number
+  cookTime: number
+  servings: number
+  difficulty: 'easy' | 'medium' | 'hard'
+  cuisine: string
+  tags: string[]
+  imageUrl?: string
   isFavorite: boolean
+  likedAt: string
+  createdAt: string
+  generatedBy: 'ai' | 'user'
   rating?: number
   notes?: string
   lastCooked?: Date

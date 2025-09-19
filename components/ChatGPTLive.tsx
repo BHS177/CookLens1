@@ -13,8 +13,13 @@ import {
   Bot,
   User,
   Volume2,
-  VolumeX
+  VolumeX,
+  Crown,
+  Lock
 } from 'lucide-react'
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import { SignInButton } from '@clerk/nextjs'
+import SubscriptionPrompt from './SubscriptionPrompt'
 
 interface ChatGPTLiveProps {
   recipe: any
@@ -42,6 +47,10 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   const [isRestarting, setIsRestarting] = useState(false)
   const [lastProcessedTime, setLastProcessedTime] = useState(0)
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [accumulatedTranscript, setAccumulatedTranscript] = useState('')
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false)
+  
+  const { isSubscribed } = useSubscription()
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -108,6 +117,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }, [])
 
   const sendMessage = async (content: string) => {
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
+    
     if (!content.trim() || isLoading) return
 
     const userMessage: Message = {
@@ -162,8 +176,19 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }
 
   const startVoiceRecognition = () => {
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
+    
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert('La reconnaissance vocale n\'est pas supportée sur votre navigateur')
+      return
+    }
+
+    // Safari-specific: Check if we're in a secure context
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      alert('La reconnaissance vocale nécessite HTTPS sur Safari. Veuillez utiliser HTTPS ou localhost.')
       return
     }
 
@@ -183,6 +208,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
     // Clear any pending input before starting
     setInputMessage('')
+    setAccumulatedTranscript('')
     
     // Reset the last processed time to ensure fresh start
     setLastProcessedTime(Date.now())
@@ -190,78 +216,186 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     console.log('🎤 Starting voice recognition...')
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
     recognitionRef.current = new SpeechRecognition()
-    recognitionRef.current.continuous = false // Always false for better control
-    recognitionRef.current.interimResults = false // Disable interim results for better final results
+    
+    // Safari-specific configuration
+    recognitionRef.current.continuous = true // Safari works better with continuous
+    recognitionRef.current.interimResults = true // Enable interim results for better feedback
     recognitionRef.current.lang = 'fr-FR'
-    recognitionRef.current.maxAlternatives = 1 // Use only the best result
+    recognitionRef.current.maxAlternatives = 1 // Safari works better with 1 alternative
+    
+    // Safari-specific: Use continuous mode for longer speech
+    if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+      recognitionRef.current.continuous = true
+      recognitionRef.current.interimResults = true
+      console.log('🎤 Safari mode: Using continuous mode for longer speech')
+    }
+    
+    // Safari-specific: Add serviceURI for better recognition
+    if ('serviceURI' in recognitionRef.current) {
+      recognitionRef.current.serviceURI = 'wss://www.google.com/speech-api/full-duplex/v1/up'
+    }
+    
+    // Safari-specific: Set grammars for better recognition
+    if ('grammars' in recognitionRef.current) {
+      recognitionRef.current.grammars = new (window as any).SpeechGrammarList()
+    }
+    
+    // Safari-specific: Add abort timeout to prevent hanging
+    const abortTimeout = setTimeout(() => {
+      if (recognitionRef.current && isListening) {
+        console.log('🎤 Safari timeout - aborting recognition')
+        recognitionRef.current.abort()
+      }
+    }, 30000) // 30 second timeout
 
     recognitionRef.current.onstart = () => {
       setIsListening(true)
       setIsRestarting(false)
+      clearTimeout(abortTimeout) // Clear abort timeout when started
       console.log('🎤 Voice recognition started')
     }
 
     recognitionRef.current.onresult = (event: any) => {
       console.log('🎤 Raw results:', event.results)
+      console.log('🎤 Result index:', event.resultIndex)
+      console.log('🎤 Results length:', event.results.length)
       
-      // Get the final result
-      const finalResults = Array.from(event.results).filter((result: any) => result.isFinal)
+      // Handle both interim and final results for Safari
+      let finalTranscript = ''
+      let maxConfidence = 0
+      let interimTranscript = ''
       
-      if (finalResults.length > 0) {
-        const result = finalResults[0] as any
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i] as any
         const transcript = result[0].transcript
         const confidence = result[0].confidence
         
-        console.log('🎤 Final transcript:', transcript)
-        console.log('🎤 Confidence:', confidence)
+        console.log(`🎤 Result ${i}:`, { transcript, confidence, isFinal: result.isFinal })
         
-        // Process any meaningful transcript with reasonable confidence
-        if (transcript && transcript.trim().length > 2 && confidence > 0.3) {
-          console.log('🎤 Processing transcript:', transcript)
-          
-          // Stop recognition immediately
-          if (recognitionRef.current) {
-            recognitionRef.current.stop()
-          }
-          
-          // Set input message and process
-          setInputMessage(transcript)
-          
-          if (chatMode === 'phone') {
-            processVoiceConversation(transcript)
-          } else {
-            sendMessage(transcript)
-          }
+        if (result.isFinal) {
+          finalTranscript = transcript
+          maxConfidence = confidence
+          console.log('🎤 Final transcript:', transcript, 'Confidence:', confidence)
         } else {
-          console.log('🎤 Low confidence or empty transcript, ignoring...', { transcript, confidence })
+          interimTranscript = transcript
+          console.log('🎤 Interim transcript:', transcript)
         }
-      } else {
-        console.log('🎤 No final results yet, waiting...')
+      }
+      
+      // For Safari: Handle interim and final results properly
+      if (interimTranscript) {
+        console.log('🎤 Showing interim transcript:', interimTranscript)
+        // For interim results, show accumulated + current interim
+        setAccumulatedTranscript(prev => {
+          const words = prev.split(' ')
+          const lastWord = words[words.length - 1]
+          const baseTranscript = interimTranscript.includes(lastWord) ? words.slice(0, -1).join(' ') : prev
+          return baseTranscript + (baseTranscript ? ' ' : '') + interimTranscript
+        })
+      }
+      
+      if (finalTranscript && finalTranscript.trim().length > 0) {
+        console.log('🎤 Processing final transcript:', finalTranscript)
+        // For final results, add to the existing transcript
+        setAccumulatedTranscript(prev => {
+          const newTranscript = prev + (prev ? ' ' : '') + finalTranscript
+          console.log('🎤 Final accumulated transcript:', newTranscript)
+          return newTranscript
+        })
       }
     }
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Erreur de reconnaissance vocale:', event.error)
+      console.error('🎤 Voice recognition error:', event.error)
+      console.error('🎤 Error details:', event)
       setIsListening(false)
       setIsRestarting(false)
       
-      // No auto-restart - user must click Retalk manually
-      console.log('🎤 Voice recognition stopped due to error:', event.error)
+      // Handle Safari-specific errors
+      if (event.error === 'not-allowed') {
+        alert('Microphone access denied. Please allow microphone access and try again.')
+      } else if (event.error === 'no-speech') {
+        console.log('🎤 No speech detected')
+        // Safari: Auto-retry for no-speech errors
+        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+          setTimeout(() => {
+            if (isVoiceActive && !isListening) {
+              console.log('🎤 Safari - Retrying after no-speech error...')
+              startVoiceRecognition()
+            }
+          }, 1000)
+        }
+        return
+      } else if (event.error === 'audio-capture') {
+        alert('Microphone not found. Please check your microphone connection.')
+      } else if (event.error === 'network') {
+        alert('Network error. Please check your internet connection.')
+      } else if (event.error === 'aborted') {
+        console.log('🎤 Recognition aborted (normal)')
+        return
+      } else {
+        console.log('🎤 Voice recognition stopped due to error:', event.error)
+        alert(`Voice recognition error: ${event.error}`)
+      }
     }
 
     recognitionRef.current.onend = () => {
       setIsListening(false)
       setIsRestarting(false)
+      clearTimeout(abortTimeout) // Clear abort timeout when ended
       console.log('🎤 Voice recognition ended')
       
-      // No auto-restart - user must click Retalk manually
+      // Safari: Auto-restart continuously for longer speech
+      if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && 
+          chatMode === 'phone' && isVoiceActive) {
+        console.log('🎤 Safari - Auto-restarting recognition for continuous speech...')
+        setTimeout(() => {
+          if (isVoiceActive && !isListening) {
+            startVoiceRecognition()
+          }
+        }, 100) // Very short delay for continuous recognition
+      }
     }
 
     try {
       recognitionRef.current.start()
+      
+      // Safari timeout mechanism - if recognition doesn't start within 3 seconds, show error
+      setTimeout(() => {
+        if (!isListening) {
+          console.log('🎤 Recognition timeout - restarting...')
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.stop()
+              setTimeout(() => {
+                if (recognitionRef.current) {
+                  recognitionRef.current.start()
+                }
+              }, 100)
+            } catch (e) {
+              console.error('Error restarting recognition:', e)
+            }
+          }
+        }
+      }, 3000)
+      
     } catch (error) {
       console.error('Error starting recognition:', error)
       setIsListening(false)
+      
+      // Safari-specific: Try again after a short delay
+      if (error instanceof Error && error.message && error.message.includes('already started')) {
+        console.log('🎤 Recognition already started, trying again...')
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.start()
+            } catch (e) {
+              console.error('Error restarting recognition:', e)
+            }
+          }
+        }, 100)
+      }
     }
   }
 
@@ -599,7 +733,12 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     onClose()
   }
 
-  const switchToPhoneMode = () => {
+  const switchToPhoneMode = async () => {
+    if (!isSubscribed) {
+      setShowSubscriptionPrompt(true)
+      return
+    }
+    
     console.log('📞 Switching to phone mode...')
     setChatMode('phone')
     setIsVoiceActive(true)
@@ -607,6 +746,19 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     
     // Stop any current recognition first
     stopVoiceRecognition()
+    
+    // Safari-specific: Request microphone permission first
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        console.log('🎤 Requesting microphone permission...')
+        await navigator.mediaDevices.getUserMedia({ audio: true })
+        console.log('🎤 Microphone permission granted')
+      }
+    } catch (error) {
+      console.error('🎤 Microphone permission denied:', error)
+      alert('Microphone access is required for voice recognition. Please allow microphone access and try again.')
+      return
+    }
     
     // Start voice recognition after a short delay
     setTimeout(() => {
@@ -622,6 +774,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
 
   return (
     <AnimatePresence>
+      {showSubscriptionPrompt && (
+        <SubscriptionPrompt onClose={() => setShowSubscriptionPrompt(false)} />
+      )}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -665,10 +820,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                   chatMode === 'phone' ? 'bg-green-100 text-green-600 border-2 border-green-300 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
-                title="Mode téléphone (conversation vocale)"
+                title="Mode téléphone (conversation vocale) - Pro"
               >
                 <Phone className="w-4 h-4" />
                 <span className="text-sm font-medium">Phone</span>
+                <Crown className="w-3 h-3 text-yellow-500" />
               </button>
               
               {chatMode === 'phone' && (
@@ -799,6 +955,91 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   )}
                 </div>
                 
+                {/* Safari-specific instructions */}
+                <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                  <p className="font-medium mb-1">🎤 Mode vocal activé</p>
+                  <p>
+                    {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') 
+                      ? 'Parlez maintenant - cliquez sur "Transcrire" quand vous avez fini'
+                      : 'Parlez maintenant - votre voix sera transcrit et envoyée automatiquement'
+                    }
+                  </p>
+                  <p className="text-xs mt-1 text-gray-500">
+                    {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') 
+                      ? 'Safari: Assurez-vous que le microphone est autorisé et que vous êtes sur HTTPS'
+                      : 'Assurez-vous que le microphone est autorisé'
+                    }
+                  </p>
+                </div>
+                
+                {/* Show accumulated transcript for Safari */}
+                {(isListening || accumulatedTranscript) && (
+                  <div className="w-full max-w-md bg-gray-50 p-3 rounded-lg border">
+                    <p className="text-sm text-gray-600 mb-1">
+                      {isListening 
+                        ? (accumulatedTranscript ? 'Transcription en cours :' : 'Écoute en cours...')
+                        : 'Transcription terminée :'
+                      }
+                    </p>
+                    <p className="text-gray-800 font-medium">
+                      {accumulatedTranscript || 'Parlez maintenant...'}
+                    </p>
+                    {isListening && !accumulatedTranscript && (
+                      <div className="flex items-center space-x-2 mt-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Manual transcribe button for Safari */}
+                {accumulatedTranscript && (
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => {
+                        console.log('🎤 Manual transcribe triggered')
+                        if (recognitionRef.current) {
+                          recognitionRef.current.stop()
+                        }
+                        
+                        // Process accumulated transcript
+                        if (accumulatedTranscript && accumulatedTranscript.trim().length > 2) {
+                          console.log('🎤 Processing accumulated transcript:', accumulatedTranscript)
+                          setInputMessage(accumulatedTranscript)
+                          
+                          if (chatMode === 'phone') {
+                            processVoiceConversation(accumulatedTranscript)
+                          } else {
+                            sendMessage(accumulatedTranscript)
+                          }
+                          
+                          // Clear transcript after processing
+                          setAccumulatedTranscript('')
+                        } else {
+                          console.log('🎤 No accumulated transcript to process')
+                        }
+                      }}
+                      className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2 font-medium"
+                    >
+                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                      <span>Transcrire</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        console.log('🎤 Restarting voice recognition...')
+                        setAccumulatedTranscript('')
+                        startVoiceRecognition()
+                      }}
+                      className="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2 font-medium"
+                    >
+                      <span>Recommencer</span>
+                    </button>
+                  </div>
+                )}
+                
                 {isSpeaking && (
                   <div className="flex space-x-3">
                     <button
@@ -811,15 +1052,71 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   </div>
                 )}
                 
-                {!isSpeaking && !isListening && !isProcessingVoice && (
-                  <button
-                    onClick={startVoiceRecognition}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2"
-                  >
-                    <Mic className="w-4 h-4" />
-                    <span>Retalk</span>
-                  </button>
-                )}
+                 {!isSpeaking && !isListening && !isProcessingVoice && !accumulatedTranscript && (
+                   <div className="flex flex-col items-center space-y-2">
+                     <button
+                       onClick={() => {
+                         console.log('🎤 Starting voice recognition...')
+                         // Reset all voice states
+                         setIsVoiceActive(true)
+                         setIsRestarting(false)
+                         setAccumulatedTranscript('')
+                         setInputMessage('')
+                         // Stop any existing recognition
+                         if (recognitionRef.current) {
+                           recognitionRef.current.stop()
+                         }
+                         // Start fresh recognition
+                         setTimeout(() => {
+                           startVoiceRecognition()
+                         }, 100)
+                       }}
+                       className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2 font-medium"
+                     >
+                       <Mic className="w-4 h-4" />
+                       <span>🎤 Parler</span>
+                     </button>
+                     
+                     {/* Safari-specific retry button */}
+                     {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && (
+                       <div className="flex flex-col space-y-2">
+                         <button
+                           onClick={async () => {
+                             console.log('🔄 Safari retry - requesting permissions again')
+                             try {
+                               if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                 await navigator.mediaDevices.getUserMedia({ audio: true })
+                                 console.log('🎤 Safari permission granted, starting recognition')
+                                 startVoiceRecognition()
+                               }
+                             } catch (error) {
+                               console.error('🎤 Safari permission still denied:', error)
+                               alert('Permission refusée. Veuillez autoriser le microphone dans les paramètres Safari.')
+                             }
+                           }}
+                           className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                         >
+                           🔄 Réessayer Safari
+                         </button>
+                         
+                         <button
+                           onClick={() => {
+                             console.log('🔍 Safari Debug Info:')
+                             console.log('- User Agent:', navigator.userAgent)
+                             console.log('- Speech Recognition Support:', 'webkitSpeechRecognition' in window)
+                             console.log('- Media Devices:', !!navigator.mediaDevices)
+                             console.log('- Current State:', { isListening, isVoiceActive, accumulatedTranscript })
+                             console.log('- Recognition Ref:', recognitionRef.current)
+                             alert('Debug info logged to console. Check browser console for details.')
+                           }}
+                           className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                         >
+                           🔍 Debug Safari
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                 )}
                 
                 {!isSpeaking && !isListening && !isProcessingVoice && (
                   <div className="text-center text-gray-500">

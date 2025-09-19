@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { UserPreferences, SavedRecipe } from '@/types'
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 
 interface AppContextType {
   preferences: UserPreferences
@@ -32,8 +33,8 @@ export function Providers({ children }: { children: ReactNode }) {
 
   // Load data from localStorage on mount
   useEffect(() => {
-    const savedPrefs = localStorage.getItem('fridge-ai-preferences')
-    const savedRecipesData = localStorage.getItem('fridge-ai-recipes')
+    const savedPrefs = localStorage.getItem('cooklens-preferences')
+    const savedRecipesData = localStorage.getItem('cooklens-recipes')
     
     if (savedPrefs) {
       setPreferences(JSON.parse(savedPrefs))
@@ -46,12 +47,12 @@ export function Providers({ children }: { children: ReactNode }) {
 
   // Save preferences to localStorage
   useEffect(() => {
-    localStorage.setItem('fridge-ai-preferences', JSON.stringify(preferences))
+    localStorage.setItem('cooklens-preferences', JSON.stringify(preferences))
   }, [preferences])
 
   // Save recipes to localStorage
   useEffect(() => {
-    localStorage.setItem('fridge-ai-recipes', JSON.stringify(savedRecipes))
+    localStorage.setItem('cooklens-recipes', JSON.stringify(savedRecipes))
   }, [savedRecipes])
 
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {
@@ -85,16 +86,18 @@ export function Providers({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{
-      preferences,
-      savedRecipes,
-      updatePreferences,
-      saveRecipe,
-      removeRecipe,
-      toggleFavorite
-    }}>
-      {children}
-    </AppContext.Provider>
+    <SubscriptionProvider>
+      <AppContext.Provider value={{
+        preferences,
+        savedRecipes,
+        updatePreferences,
+        saveRecipe,
+        removeRecipe,
+        toggleFavorite
+      }}>
+        {children}
+      </AppContext.Provider>
+    </SubscriptionProvider>
   )
 }
 

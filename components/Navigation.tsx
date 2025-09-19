@@ -4,19 +4,34 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Home, BookOpen, Settings, Menu, X, Camera } from 'lucide-react'
+import { Home, Settings, Menu, X, Camera } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import LanguageSelector from '@/components/LanguageSelector'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
   const { t } = useLanguage()
 
+  const handleSignOut = () => {
+    // Clear all localStorage
+    localStorage.clear()
+    // Clear all sessionStorage
+    sessionStorage.clear()
+    // Clear all cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+    })
+    // Reload the page
+    window.location.href = '/'
+  }
+
   const navigation = [
     { name: t('nav.home'), href: '/', icon: Home },
-    { name: t('nav.recipes'), href: '/recipes', icon: BookOpen },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ]
 
@@ -29,7 +44,7 @@ export default function Navigation() {
             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
               <Camera className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">Fridge AI</span>
+            <span className="text-xl font-bold text-gray-900">CookLens</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -52,8 +67,42 @@ export default function Navigation() {
                 </Link>
               )
             })}
-            <div className="ml-4 pl-4 border-l border-gray-200">
+            <div className="ml-4 pl-4 border-l border-gray-200 flex items-center space-x-4">
               <LanguageSelector />
+              
+              {/* Clerk Authentication */}
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 font-medium">
+                    Se connecter
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                    S&apos;inscrire
+                  </button>
+                </SignUpButton>
+              </SignedOut>
+              <SignedIn>
+                <div className="flex items-center space-x-2">
+                  <UserButton 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-8 h-8",
+                        userButtonPopoverActionButton__signOut: "hidden",
+                        userButtonPopoverActionButton__manageAccount: "hidden",
+                        userButtonPopoverFooter: "hidden"
+                      }
+                    }}
+                  />
+                  <button 
+                    onClick={handleSignOut}
+                    className="text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium text-sm"
+                  >
+                    Se déconnecter
+                  </button>
+                </div>
+              </SignedIn>
             </div>
           </div>
 
@@ -97,8 +146,47 @@ export default function Navigation() {
                 </Link>
               )
             })}
-            <div className="px-4 py-3 border-t border-gray-200 mt-2">
+            <div className="px-4 py-3 border-t border-gray-200 mt-2 space-y-3">
               <LanguageSelector />
+              
+              {/* Mobile Clerk Authentication */}
+              <div className="flex flex-col space-y-2">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="w-full text-left text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 font-medium">
+                      Se connecter
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                      S&apos;inscrire
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 font-medium">Mon compte</span>
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-8 h-8",
+                            userButtonPopoverActionButton__signOut: "hidden",
+                            userButtonPopoverActionButton__manageAccount: "hidden",
+                            userButtonPopoverFooter: "hidden"
+                          }
+                        }}
+                      />
+                    </div>
+                    <button 
+                      onClick={handleSignOut}
+                      className="w-full text-left text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium"
+                    >
+                      Se déconnecter
+                    </button>
+                  </div>
+                </SignedIn>
+              </div>
             </div>
           </div>
         </motion.div>
