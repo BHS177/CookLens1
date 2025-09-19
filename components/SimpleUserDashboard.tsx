@@ -28,9 +28,11 @@ import {
 import { useUser } from '@clerk/nextjs'
 import { getUserData, removeRecipe } from '@/lib/hybrid-storage'
 import { SavedRecipe, UserPreferences } from '@/types'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function SimpleUserDashboard() {
   const { user, isLoaded } = useUser()
+  const { t } = useLanguage()
   const [savedRecipes, setSavedRecipes] = useState<SavedRecipe[]>([])
   const [preferences, setPreferences] = useState<UserPreferences>({
     cuisine: [],
@@ -212,9 +214,9 @@ export default function SimpleUserDashboard() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-2 sm:space-x-8 overflow-x-auto">
           {[
-            { id: 'overview', name: 'Overview', icon: TrendingUp },
-            { id: 'recipes', name: 'My Recipes', icon: BookOpen },
-            { id: 'preferences', name: 'Preferences', icon: Settings },
+            { id: 'overview', name: t('dashboard.overview'), icon: TrendingUp },
+            { id: 'recipes', name: t('dashboard.recipes'), icon: BookOpen },
+            { id: 'preferences', name: t('dashboard.preferences'), icon: Settings },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -236,61 +238,6 @@ export default function SimpleUserDashboard() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
-                </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Saved Recipes
-                    </dt>
-                    <dd className="text-base sm:text-lg font-medium text-gray-900">
-                      {savedRecipes.length}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
-                </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Favorites
-                    </dt>
-                    <dd className="text-base sm:text-lg font-medium text-gray-900">
-                      {savedRecipes.filter(r => r.isFavorite).length}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6 sm:col-span-2 md:col-span-1">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <ChefHat className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
-                </div>
-                <div className="ml-3 sm:ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
-                      Mode chef
-                    </dt>
-                    <dd className="text-base sm:text-lg font-medium text-gray-900 capitalize">
-                      {preferences.chefMode}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Subscription Status Card */}
           <div className="bg-white rounded-lg shadow">
@@ -310,7 +257,7 @@ export default function SimpleUserDashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">Active subscription</span>
+                      <span className="text-sm font-medium text-gray-900">{t('dashboard.subscriptionStatus')}</span>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       Pro
@@ -367,16 +314,16 @@ export default function SimpleUserDashboard() {
               ) : (
                 <div className="text-center py-4">
                   <XCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <h4 className="text-sm font-medium text-gray-900 mb-1">No active subscription</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">{t('dashboard.noActiveSubscription')}</h4>
                   <p className="text-sm text-gray-500 mb-4">
-                    Upgrade to CookLens Pro to unlock all features
+                    {t('dashboard.upgradeToPro')}
                   </p>
                   <button 
                     onClick={handleSubscribe}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
                   >
                     <Crown className="w-4 h-4 mr-2" />
-                    S&apos;abonner
+                    {t('dashboard.subscribe')}
                   </button>
                 </div>
               )}
@@ -385,11 +332,11 @@ export default function SimpleUserDashboard() {
 
           <div className="bg-white rounded-lg shadow">
             <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900">Recent recipes</h3>
+              <h3 className="text-base sm:text-lg font-medium text-gray-900">{t('dashboard.recentRecipes')}</h3>
             </div>
             <div className="p-4 sm:p-6">
               {savedRecipes.slice(0, 5).length === 0 ? (
-                <p className="text-gray-500 text-center py-4 text-sm sm:text-base">No saved recipes</p>
+                <p className="text-gray-500 text-center py-4 text-sm sm:text-base">{t('dashboard.noSavedRecipes')}</p>
               ) : (
                 <div className="space-y-2 sm:space-y-3">
                   {savedRecipes.slice(0, 5).map((recipe) => (
@@ -508,15 +455,6 @@ export default function SimpleUserDashboard() {
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Préférences de cuisine</h3>
             <div className="space-y-3 sm:space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                  Mode chef
-                </label>
-                <span className="text-xs sm:text-sm text-gray-600 capitalize">
-                  {preferences.chefMode}
-                </span>
-              </div>
-              
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Temps de préparation maximum

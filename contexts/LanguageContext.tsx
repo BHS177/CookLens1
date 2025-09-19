@@ -200,6 +200,51 @@ const translations = {
     'detection.error.retry': 'Réessayer',
     'detection.api.info': 'Information importante',
     'detection.api.limit': 'L\'API ChatGPT a atteint sa limite de requêtes. Veuillez réessayer plus tard.',
+    
+    // Dashboard
+    'dashboard.title': 'Mon Tableau de Bord',
+    'dashboard.subtitle': 'Gérez vos recettes sauvegardées, préférences et statistiques personnelles',
+    'dashboard.overview': 'Vue d\'ensemble',
+    'dashboard.recipes': 'Mes recettes',
+    'dashboard.preferences': 'Préférences',
+    'dashboard.savedRecipes': 'Recettes sauvegardées',
+    'dashboard.favorites': 'Favoris',
+    'dashboard.chefMode': 'Mode chef',
+    'dashboard.simple': 'Simple',
+    'dashboard.subscriptionStatus': 'Statut d\'abonnement',
+    'dashboard.noActiveSubscription': 'Aucun abonnement actif',
+    'dashboard.upgradeToPro': 'Passez à CookLens Pro pour débloquer toutes les fonctionnalités',
+    'dashboard.subscribe': 'S\'abonner',
+    'dashboard.recentRecipes': 'Recettes récentes',
+    'dashboard.noSavedRecipes': 'Aucune recette sauvegardée',
+    'dashboard.signOut': 'Se déconnecter',
+    
+    // Cooking Time
+    'cookingTime.title': 'Temps de cuisine',
+    'cookingTime.prepTime': 'Temps de préparation',
+    'cookingTime.cookTime': 'Temps de cuisson',
+    'cookingTime.totalMax': 'Temps total maximum : {minutes} minutes',
+    'cookingTime.minutes': '{minutes} min',
+    
+    // Difficulty Level
+    'difficulty.title': 'Niveau de difficulté',
+    'difficulty.easy': 'Facile',
+    'difficulty.easy.desc': 'Recettes simples et rapides',
+    'difficulty.medium': 'Moyen',
+    'difficulty.medium.desc': 'Recettes avec quelques techniques',
+    'difficulty.hard': 'Difficile',
+    'difficulty.hard.desc': 'Recettes complexes et techniques',
+    
+    // Navigation
+    'nav.backToPreferences': 'Retour aux préférences',
+    
+    // Features
+    'features.smartPhoto': 'Photo intelligente',
+    'features.smartPhoto.desc': 'Détection automatique des ingrédients dans votre frigo',
+    'features.aiRecipes': 'Recettes IA',
+    'features.aiRecipes.desc': 'Génération de recettes personnalisées avec ChefGPT',
+    'features.advancedFilters': 'Filtres avancés',
+    'features.advancedFilters.desc': 'Cuisine, régime alimentaire et préférences',
   },
   en: {
     // Navigation
@@ -387,6 +432,51 @@ const translations = {
     'detection.error.retry': 'Retry',
     'detection.api.info': 'Important information',
     'detection.api.limit': 'ChatGPT API has reached its request limit. Please try again later.',
+    
+    // Dashboard
+    'dashboard.title': 'My Dashboard',
+    'dashboard.subtitle': 'Manage your saved recipes, preferences and personal statistics',
+    'dashboard.overview': 'Overview',
+    'dashboard.recipes': 'My Recipes',
+    'dashboard.preferences': 'Preferences',
+    'dashboard.savedRecipes': 'Saved Recipes',
+    'dashboard.favorites': 'Favorites',
+    'dashboard.chefMode': 'Chef Mode',
+    'dashboard.simple': 'Simple',
+    'dashboard.subscriptionStatus': 'Subscription Status',
+    'dashboard.noActiveSubscription': 'No active subscription',
+    'dashboard.upgradeToPro': 'Upgrade to CookLens Pro to unlock all features',
+    'dashboard.subscribe': 'Subscribe',
+    'dashboard.recentRecipes': 'Recent recipes',
+    'dashboard.noSavedRecipes': 'No saved recipes',
+    'dashboard.signOut': 'Sign Out',
+    
+    // Cooking Time
+    'cookingTime.title': 'Cooking Time',
+    'cookingTime.prepTime': 'Prep Time',
+    'cookingTime.cookTime': 'Cook Time',
+    'cookingTime.totalMax': 'Total maximum time: {minutes} minutes',
+    'cookingTime.minutes': '{minutes} min',
+    
+    // Difficulty Level
+    'difficulty.title': 'Difficulty Level',
+    'difficulty.easy': 'Easy',
+    'difficulty.easy.desc': 'Simple and quick recipes',
+    'difficulty.medium': 'Medium',
+    'difficulty.medium.desc': 'Recipes with some techniques',
+    'difficulty.hard': 'Hard',
+    'difficulty.hard.desc': 'Complex and technical recipes',
+    
+    // Navigation
+    'nav.backToPreferences': 'Back to preferences',
+    
+    // Features
+    'features.smartPhoto': 'Smart Photo',
+    'features.smartPhoto.desc': 'Automatic ingredient detection in your fridge',
+    'features.aiRecipes': 'AI Recipes',
+    'features.aiRecipes.desc': 'Personalized recipe generation with ChefGPT',
+    'features.advancedFilters': 'Advanced Filters',
+    'features.advancedFilters.desc': 'Cuisine, diet and preferences',
   }
 }
 

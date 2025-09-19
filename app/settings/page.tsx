@@ -2,8 +2,10 @@
 
 import { motion } from 'framer-motion'
 import SimpleUserDashboard from '@/components/SimpleUserDashboard'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export default function SettingsPage() {
+  const { t } = useLanguage()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -15,9 +17,9 @@ export default function SettingsPage() {
           transition={{ duration: 0.6 }}
           className="mb-6 sm:mb-8"
         >
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Mon Tableau de Bord</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{t('dashboard.title')}</h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Gérez vos recettes sauvegardées, préférences et statistiques personnelles
+            {t('dashboard.subtitle')}
           </p>
         </motion.div>
 

@@ -571,7 +571,7 @@ export default function RecipeGenerator({
           className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors mx-auto"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Retour aux préférences</span>
+          <span>{t('nav.backToPreferences')}</span>
         </button>
         
         {/* Chat Button */}

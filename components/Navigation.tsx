@@ -99,7 +99,7 @@ export default function Navigation() {
                     onClick={handleSignOut}
                     className="text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium text-sm"
                   >
-                    Se déconnecter
+                    {t('dashboard.signOut')}
                   </button>
                 </div>
               </SignedIn>
@@ -178,11 +178,11 @@ export default function Navigation() {
                         }}
                       />
                     </div>
-                    <button 
+                    <button
                       onClick={handleSignOut}
                       className="w-full text-left text-gray-600 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors duration-200 font-medium"
                     >
-                      Se déconnecter
+                      {t('dashboard.signOut')}
                     </button>
                   </div>
                 </SignedIn>

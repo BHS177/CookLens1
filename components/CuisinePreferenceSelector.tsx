@@ -28,7 +28,7 @@ export default function CuisinePreferenceSelector({
   const [countrySearch, setCountrySearch] = useState<string>('')
   const [maxPrepTime, setMaxPrepTime] = useState<number>(60)
   const [maxCookTime, setMaxCookTime] = useState<number>(120)
-  const [difficulty, setDifficulty] = useState<string[]>(['moyen'])
+  const [difficulty, setDifficulty] = useState<string>('moyen')
   const [diet, setDiet] = useState<string[]>([])
   const [allergies, setAllergies] = useState<string[]>([])
   const [editableIngredients, setEditableIngredients] = useState<DetectedIngredient[]>(ingredients)
@@ -103,9 +103,9 @@ export default function CuisinePreferenceSelector({
   ]
 
   const difficultyOptions = [
-    { value: 'facile', label: t('preferences.difficulty.easy'), description: t('preferences.difficulty.easy.desc') },
-    { value: 'moyen', label: t('preferences.difficulty.medium'), description: t('preferences.difficulty.medium.desc') },
-    { value: 'difficile', label: t('preferences.difficulty.hard'), description: t('preferences.difficulty.hard.desc') }
+    { value: 'facile', label: t('difficulty.easy'), description: t('difficulty.easy.desc') },
+    { value: 'moyen', label: t('difficulty.medium'), description: t('difficulty.medium.desc') },
+    { value: 'difficile', label: t('difficulty.hard'), description: t('difficulty.hard.desc') }
   ]
 
   // Ingredient management functions
@@ -165,7 +165,7 @@ export default function CuisinePreferenceSelector({
       allergies,
       maxPrepTime,
       maxCookTime,
-      difficulty,
+      difficulty: [difficulty],
       chefMode,
       selectedCountry: chefMode === 'country' ? selectedCountry : null,
       autoUpdateRecipe: false,
@@ -221,21 +221,21 @@ export default function CuisinePreferenceSelector({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="max-w-4xl mx-auto space-y-8"
+      className="max-w-4xl mx-auto space-y-6 sm:space-y-8 px-4 sm:px-0"
     >
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
           {t('preferences.title')}
         </h2>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-600 text-base sm:text-lg">
           {t('preferences.subtitle')}
         </p>
       </div>
 
       {/* Editable Ingredients */}
-      <div className="bg-gray-50 rounded-xl p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">
+      <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
+        <h3 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">
           {editableIngredients.length > 0 ? t('preferences.ingredients.detected') : t('preferences.ingredients.add')}
         </h3>
         
@@ -316,16 +316,16 @@ export default function CuisinePreferenceSelector({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Chef Mode Selection */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <ChefHat className="w-5 h-5 mr-2 text-primary-600" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+              <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary-600" />
               {t('preferences.chef.title')}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="radio"
@@ -436,33 +436,33 @@ export default function CuisinePreferenceSelector({
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Clock className="w-5 h-5 mr-2 text-primary-600" />
-              Temps de cuisine
+              {t('cookingTime.title')}
             </h3>
             <div className="space-y-6">
               {/* Preparation Time */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    Temps de préparation
+                    {t('cookingTime.prepTime')}
                   </label>
                   <span className="text-sm font-semibold text-primary-600">
-                    {maxPrepTime} min
+                    {t('cookingTime.minutes').replace('{minutes}', maxPrepTime.toString())}
                   </span>
                 </div>
                 <input
                   type="range"
-                  min="15"
+                  min="5"
                   max="120"
-                  step="15"
+                  step="5"
                   value={maxPrepTime}
                   onChange={(e) => setMaxPrepTime(Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxPrepTime - 15) / (120 - 15) * 100}%, #e5e7eb ${(maxPrepTime - 15) / (120 - 15) * 100}%, #e5e7eb 100%)`
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxPrepTime - 5) / (120 - 5) * 100}%, #e5e7eb ${(maxPrepTime - 5) / (120 - 5) * 100}%, #e5e7eb 100%)`
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>15 min</span>
+                  <span>{t('cookingTime.minutes').replace('{minutes}', '5')}</span>
                   <span>2h</span>
                 </div>
               </div>
@@ -471,26 +471,26 @@ export default function CuisinePreferenceSelector({
               <div className="border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-sm font-medium text-gray-700">
-                    Temps de cuisson
+                    {t('cookingTime.cookTime')}
                   </label>
                   <span className="text-sm font-semibold text-primary-600">
-                    {maxCookTime} min
+                    {t('cookingTime.minutes').replace('{minutes}', maxCookTime.toString())}
                   </span>
                 </div>
                 <input
                   type="range"
-                  min="0"
+                  min="5"
                   max="180"
-                  step="15"
+                  step="5"
                   value={maxCookTime}
                   onChange={(e) => setMaxCookTime(Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${maxCookTime / 180 * 100}%, #e5e7eb ${maxCookTime / 180 * 100}%, #e5e7eb 100%)`
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxCookTime - 5) / (180 - 5) * 100}%, #e5e7eb ${(maxCookTime - 5) / (180 - 5) * 100}%, #e5e7eb 100%)`
                   }}
                 />
                 <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0 min</span>
+                  <span>{t('cookingTime.minutes').replace('{minutes}', '5')}</span>
                   <span>3h</span>
                 </div>
               </div>
@@ -499,7 +499,7 @@ export default function CuisinePreferenceSelector({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2 text-sm text-blue-800">
                   <Clock className="w-4 h-4" />
-                  <span className="font-medium">Temps total maximum : {maxPrepTime + maxCookTime} minutes</span>
+                  <span className="font-medium">{t('cookingTime.totalMax').replace('{minutes}', (maxPrepTime + maxCookTime).toString())}</span>
                 </div>
               </div>
             </div>
@@ -511,16 +511,18 @@ export default function CuisinePreferenceSelector({
           {/* Difficulty Selection */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {t('preferences.difficulty.title')}
+              {t('difficulty.title')}
             </h3>
             <div className="space-y-3">
               {difficultyOptions.map((option) => (
                 <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
                   <input
-                    type="checkbox"
-                    checked={difficulty.includes(option.value)}
-                    onChange={() => toggleArrayItem(difficulty, setDifficulty, option.value)}
-                    className="w-4 h-4 text-primary-600 rounded"
+                    type="radio"
+                    name="difficulty"
+                    value={option.value}
+                    checked={difficulty === option.value}
+                    onChange={(e) => setDifficulty(e.target.value)}
+                    className="w-4 h-4 text-primary-600"
                   />
                   <div>
                     <div className="font-medium">{option.label}</div>
@@ -536,7 +538,7 @@ export default function CuisinePreferenceSelector({
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {t('preferences.diet.title')}
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2">
               {dietOptions.map((dietOption) => (
                 <label key={dietOption.value} className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -556,7 +558,7 @@ export default function CuisinePreferenceSelector({
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {t('preferences.allergies.title')}
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2">
               {allergyOptions.map((allergy) => (
                 <label key={allergy.value} className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -584,21 +586,21 @@ export default function CuisinePreferenceSelector({
       )}
 
       {/* Action Buttons */}
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <button
           onClick={onBack}
-          className="btn-secondary flex items-center space-x-2"
+          className="flex-1 sm:flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-4 rounded-xl font-semibold text-base transition-colors duration-200 flex items-center justify-center space-x-2"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
           <span>{t('common.back')}</span>
         </button>
         
         <button
           onClick={handleContinue}
-          className="btn-primary flex items-center space-x-2"
+          className="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-4 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center space-x-2"
         >
           <span>{t('preferences.actions.generate')}</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-5 h-5" />
         </button>
       </div>
     </motion.div>
