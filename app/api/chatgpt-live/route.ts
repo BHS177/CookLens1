@@ -4,14 +4,22 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 ChatGPT Live API called')
     const { message, recipe, conversationHistory } = await request.json()
+    
+    console.log('📝 Message:', message)
+    console.log('🍳 Recipe:', recipe)
+    console.log('💬 History length:', conversationHistory?.length || 0)
 
     if (!OPENAI_API_KEY) {
+      console.error('❌ OpenAI API key not configured')
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },
         { status: 500 }
       )
     }
+    
+    console.log('✅ OpenAI API key found')
 
     // Construire le contexte de la recette
     const recipeContext = recipe ? `
@@ -127,6 +135,9 @@ Question de l'utilisateur: ${message}`
 
     const data = await response.json()
     const chatResponse = data.choices[0]?.message?.content || 'Désolé, je n\'ai pas pu générer de réponse.'
+    
+    console.log('✅ OpenAI response received:', chatResponse.substring(0, 100) + '...')
+    console.log('📤 Sending response to client')
 
     return NextResponse.json({ response: chatResponse })
 

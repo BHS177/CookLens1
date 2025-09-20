@@ -65,8 +65,8 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }, [messages])
 
   useEffect(() => {
-    if (isOpen && recipe) {
-      // Message de bienvenue avec contexte de la recette
+    if (isOpen && recipe && messages.length === 0) {
+      // Message de bienvenue avec contexte de la recette (seulement si pas de messages existants)
       const welcomeMessage: Message = {
         id: 'welcome',
         type: 'assistant',
@@ -75,7 +75,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       }
       setMessages([welcomeMessage])
     }
-  }, [isOpen, recipe])
+  }, [isOpen, recipe, messages.length])
 
   // Load available voices
   useEffect(() => {
@@ -136,6 +136,10 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     setIsLoading(true)
 
     try {
+      console.log('🚀 Sending message to ChatGPT:', content)
+      console.log('📝 Recipe context:', recipe)
+      console.log('💬 Conversation history:', messages)
+      
       const response = await fetch('/api/chatgpt-live', {
         method: 'POST',
         headers: {
@@ -148,11 +152,17 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
         })
       })
 
+      console.log('📡 Response status:', response.status)
+      console.log('📡 Response ok:', response.ok)
+
       if (!response.ok) {
-        throw new Error('Erreur lors de la communication avec ChatGPT')
+        const errorText = await response.text()
+        console.error('❌ API Error:', errorText)
+        throw new Error(`Erreur lors de la communication avec ChatGPT: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log('✅ ChatGPT response:', data)
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -169,7 +179,15 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       }
 
     } catch (error) {
-      console.error('Erreur ChatGPT:', error)
+      console.error('❌ Erreur ChatGPT:', error)
+      // Add error message to chat
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Désolé, une erreur s'est produite: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
@@ -240,66 +258,33 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
       recognitionRef.current.grammars = new (window as any).SpeechGrammarList()
     }
     
-    // Safari-specific: Add abort timeout to prevent hanging
-    const abortTimeout = setTimeout(() => {
-      if (recognitionRef.current && isListening) {
-        console.log('🎤 Safari timeout - aborting recognition')
-        recognitionRef.current.abort()
-      }
-    }, 30000) // 30 second timeout
-
     recognitionRef.current.onstart = () => {
       setIsListening(true)
       setIsRestarting(false)
-      clearTimeout(abortTimeout) // Clear abort timeout when started
       console.log('🎤 Voice recognition started')
     }
 
     recognitionRef.current.onresult = (event: any) => {
       console.log('🎤 Raw results:', event.results)
-      console.log('🎤 Result index:', event.resultIndex)
-      console.log('🎤 Results length:', event.results.length)
       
-      // Handle both interim and final results for Safari
+      // Only process final results to avoid duplication
       let finalTranscript = ''
-      let maxConfidence = 0
-      let interimTranscript = ''
       
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i] as any
-        const transcript = result[0].transcript
-        const confidence = result[0].confidence
-        
-        console.log(`🎤 Result ${i}:`, { transcript, confidence, isFinal: result.isFinal })
-        
         if (result.isFinal) {
-          finalTranscript = transcript
-          maxConfidence = confidence
-          console.log('🎤 Final transcript:', transcript, 'Confidence:', confidence)
-        } else {
-          interimTranscript = transcript
-          console.log('🎤 Interim transcript:', transcript)
+          finalTranscript = result[0].transcript
+          console.log('🎤 Final transcript:', finalTranscript)
+          break // Only process the first final result
         }
       }
       
-      // For Safari: Handle interim and final results properly
-      if (interimTranscript) {
-        console.log('🎤 Showing interim transcript:', interimTranscript)
-        // For interim results, show accumulated + current interim
-        setAccumulatedTranscript(prev => {
-          const words = prev.split(' ')
-          const lastWord = words[words.length - 1]
-          const baseTranscript = interimTranscript.includes(lastWord) ? words.slice(0, -1).join(' ') : prev
-          return baseTranscript + (baseTranscript ? ' ' : '') + interimTranscript
-        })
-      }
-      
+      // Only add final results to avoid word duplication
       if (finalTranscript && finalTranscript.trim().length > 0) {
-        console.log('🎤 Processing final transcript:', finalTranscript)
-        // For final results, add to the existing transcript
+        console.log('🎤 Adding final transcript:', finalTranscript)
         setAccumulatedTranscript(prev => {
           const newTranscript = prev + (prev ? ' ' : '') + finalTranscript
-          console.log('🎤 Final accumulated transcript:', newTranscript)
+          console.log('🎤 Updated transcript:', newTranscript)
           return newTranscript
         })
       }
@@ -342,42 +327,14 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
     recognitionRef.current.onend = () => {
       setIsListening(false)
       setIsRestarting(false)
-      clearTimeout(abortTimeout) // Clear abort timeout when ended
       console.log('🎤 Voice recognition ended')
       
-      // Safari: Auto-restart continuously for longer speech
-      if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && 
-          chatMode === 'phone' && isVoiceActive) {
-        console.log('🎤 Safari - Auto-restarting recognition for continuous speech...')
-        setTimeout(() => {
-          if (isVoiceActive && !isListening) {
-            startVoiceRecognition()
-          }
-        }, 100) // Very short delay for continuous recognition
-      }
+      // Do nothing - user must manually click "Envoyer" to send
     }
 
     try {
       recognitionRef.current.start()
       
-      // Safari timeout mechanism - if recognition doesn't start within 3 seconds, show error
-      setTimeout(() => {
-        if (!isListening) {
-          console.log('🎤 Recognition timeout - restarting...')
-          if (recognitionRef.current) {
-            try {
-              recognitionRef.current.stop()
-              setTimeout(() => {
-                if (recognitionRef.current) {
-                  recognitionRef.current.start()
-                }
-              }, 100)
-            } catch (e) {
-              console.error('Error restarting recognition:', e)
-            }
-          }
-        }
-      }, 3000)
       
     } catch (error) {
       console.error('Error starting recognition:', error)
@@ -781,49 +738,49 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[90vh] sm:h-[80vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                 <Bot className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">ChatGPT Live</h3>
-                <p className="text-sm text-gray-500">Assistant culinaire</p>
+                <h3 className="font-semibold text-gray-900 text-sm sm:text-base">ChatGPT Live</h3>
+                <p className="text-xs sm:text-sm text-gray-500">Assistant culinaire</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={switchToMessageMode}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                className={`px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm ${
                   chatMode === 'message' ? 'bg-blue-100 text-blue-600 border-2 border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 title="Mode message (texte)"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">Message</span>
+                <span className="text-xs sm:text-sm font-medium">Message</span>
               </button>
               
               <button
                 onClick={switchToPhoneMode}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                className={`px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm ${
                   chatMode === 'phone' ? 'bg-green-100 text-green-600 border-2 border-green-300 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 title="Mode téléphone (conversation vocale) - Pro"
               >
                 <Phone className="w-4 h-4" />
-                <span className="text-sm font-medium">Phone</span>
+                <span className="text-xs sm:text-sm font-medium">Phone</span>
                 <Crown className="w-3 h-3 text-yellow-500" />
               </button>
               
@@ -849,7 +806,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
             {messages.map((message) => (
               <motion.div
                 key={message.id}
@@ -857,7 +814,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-start space-x-2 max-w-[80%] ${
+                <div className={`flex items-start space-x-2 max-w-[85%] sm:max-w-[80%] ${
                   message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                 }`}>
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -872,12 +829,12 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                     )}
                   </div>
                   
-                  <div className={`px-4 py-2 rounded-2xl ${
+                  <div className={`px-3 sm:px-4 py-2 rounded-2xl text-sm sm:text-base ${
                     message.type === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-900'
                   }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -933,58 +890,47 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
             )}
             
             {chatMode === 'phone' && (
-              <div className="mt-4 flex flex-col items-center space-y-3">
-                <div className="flex items-center space-x-4">
+              <div className="mt-2 sm:mt-4 flex flex-col items-center space-y-2 sm:space-y-3">
+                <div className="flex items-center space-x-2 sm:space-x-4">
                   {isListening && (
                     <div className="flex items-center space-x-2 text-red-600">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium">J&apos;écoute...</span>
+                      <span className="font-medium text-xs sm:text-sm">J&apos;écoute...</span>
                     </div>
                   )}
                   {isProcessingVoice && (
                     <div className="flex items-center space-x-2 text-yellow-600">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium">Je traite...</span>
+                      <span className="font-medium text-xs sm:text-sm">Je traite...</span>
                     </div>
                   )}
                   {isSpeaking && (
                     <div className="flex items-center space-x-2 text-green-600">
                       <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium">ChatGPT parle...</span>
+                      <span className="font-medium text-xs sm:text-sm">ChatGPT parle...</span>
                     </div>
                   )}
                 </div>
                 
-                {/* Safari-specific instructions */}
-                <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                {/* Voice instructions */}
+                <div className="text-center text-xs sm:text-sm text-gray-600 bg-blue-50 p-2 sm:p-3 rounded-lg mx-2">
                   <p className="font-medium mb-1">🎤 Mode vocal activé</p>
-                  <p>
-                    {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') 
-                      ? 'Parlez maintenant - cliquez sur "Transcrire" quand vous avez fini'
-                      : 'Parlez maintenant - votre voix sera transcrit et envoyée automatiquement'
-                    }
-                  </p>
+                  <p className="text-xs sm:text-sm">Parlez maintenant - cliquez sur "Envoyer" quand vous avez fini</p>
                   <p className="text-xs mt-1 text-gray-500">
-                    {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') 
-                      ? 'Safari: Assurez-vous que le microphone est autorisé et que vous êtes sur HTTPS'
-                      : 'Assurez-vous que le microphone est autorisé'
-                    }
+                    Assurez-vous que le microphone est autorisé
                   </p>
                 </div>
                 
-                {/* Show accumulated transcript for Safari */}
+                {/* Show current transcript */}
                 {(isListening || accumulatedTranscript) && (
-                  <div className="w-full max-w-md bg-gray-50 p-3 rounded-lg border">
-                    <p className="text-sm text-gray-600 mb-1">
-                      {isListening 
-                        ? (accumulatedTranscript ? 'Transcription en cours :' : 'Écoute en cours...')
-                        : 'Transcription terminée :'
-                      }
+                  <div className="w-full max-w-md bg-gray-50 p-2 sm:p-3 rounded-lg border mx-2">
+                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                      {isListening ? 'Transcription en cours :' : 'Votre message :'}
                     </p>
-                    <p className="text-gray-800 font-medium">
+                    <p className="text-xs sm:text-sm text-gray-800 font-medium">
                       {accumulatedTranscript || 'Parlez maintenant...'}
                     </p>
-                    {isListening && !accumulatedTranscript && (
+                    {isListening && (
                       <div className="flex items-center space-x-2 mt-2">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
@@ -994,51 +940,70 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   </div>
                 )}
                 
-                {/* Manual transcribe button for Safari */}
-                {accumulatedTranscript && (
-                  <div className="flex space-x-3">
+                {/* Action buttons */}
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full px-2">
+                  {!isListening && !accumulatedTranscript && (
                     <button
                       onClick={() => {
-                        console.log('🎤 Manual transcribe triggered')
-                        if (recognitionRef.current) {
-                          recognitionRef.current.stop()
-                        }
-                        
-                        // Process accumulated transcript
-                        if (accumulatedTranscript && accumulatedTranscript.trim().length > 2) {
-                          console.log('🎤 Processing accumulated transcript:', accumulatedTranscript)
-                          setInputMessage(accumulatedTranscript)
-                          
-                          if (chatMode === 'phone') {
-                            processVoiceConversation(accumulatedTranscript)
-                          } else {
-                            sendMessage(accumulatedTranscript)
-                          }
-                          
-                          // Clear transcript after processing
-                          setAccumulatedTranscript('')
-                        } else {
-                          console.log('🎤 No accumulated transcript to process')
-                        }
-                      }}
-                      className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2 font-medium"
-                    >
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                      <span>Transcrire</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        console.log('🎤 Restarting voice recognition...')
+                        console.log('🎤 Starting voice recognition...')
+                        setIsVoiceActive(true)
                         setAccumulatedTranscript('')
                         startVoiceRecognition()
                       }}
-                      className="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2 font-medium"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
                     >
-                      <span>Recommencer</span>
+                      <Mic className="w-4 h-4" />
+                      <span>🎤 Parler</span>
                     </button>
-                  </div>
-                )}
+                  )}
+                  
+                  {isListening && (
+                    <button
+                      onClick={() => {
+                        console.log('🎤 Stopping voice recognition...')
+                        if (recognitionRef.current) {
+                          recognitionRef.current.stop()
+                        }
+                        setIsVoiceActive(false)
+                      }}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                    >
+                      <div className="w-4 h-4 bg-white rounded-sm"></div>
+                      <span>Arrêter</span>
+                    </button>
+                  )}
+                  
+                  {accumulatedTranscript && !isListening && (
+                    <button
+                      onClick={() => {
+                        console.log('🎤 Sending message...')
+                        if (chatMode === 'phone') {
+                          processVoiceConversation(accumulatedTranscript)
+                        } else {
+                          sendMessage(accumulatedTranscript)
+                        }
+                        setAccumulatedTranscript('')
+                        setIsVoiceActive(false)
+                      }}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                    >
+                      <span>Envoyer</span>
+                    </button>
+                  )}
+                  
+                  {accumulatedTranscript && (
+                    <button
+                      onClick={() => {
+                        console.log('🎤 Clearing transcript...')
+                        setAccumulatedTranscript('')
+                        setIsVoiceActive(false)
+                      }}
+                      className="w-full sm:w-auto px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                    >
+                      <span>Effacer</span>
+                    </button>
+                  )}
+                </div>
                 
                 {isSpeaking && (
                   <div className="flex space-x-3">
@@ -1052,76 +1017,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                   </div>
                 )}
                 
-                 {!isSpeaking && !isListening && !isProcessingVoice && !accumulatedTranscript && (
-                   <div className="flex flex-col items-center space-y-2">
-                     <button
-                       onClick={() => {
-                         console.log('🎤 Starting voice recognition...')
-                         // Reset all voice states
-                         setIsVoiceActive(true)
-                         setIsRestarting(false)
-                         setAccumulatedTranscript('')
-                         setInputMessage('')
-                         // Stop any existing recognition
-                         if (recognitionRef.current) {
-                           recognitionRef.current.stop()
-                         }
-                         // Start fresh recognition
-                         setTimeout(() => {
-                           startVoiceRecognition()
-                         }, 100)
-                       }}
-                       className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2 font-medium"
-                     >
-                       <Mic className="w-4 h-4" />
-                       <span>🎤 Parler</span>
-                     </button>
-                     
-                     {/* Safari-specific retry button */}
-                     {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') && (
-                       <div className="flex flex-col space-y-2">
-                         <button
-                           onClick={async () => {
-                             console.log('🔄 Safari retry - requesting permissions again')
-                             try {
-                               if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                                 await navigator.mediaDevices.getUserMedia({ audio: true })
-                                 console.log('🎤 Safari permission granted, starting recognition')
-                                 startVoiceRecognition()
-                               }
-                             } catch (error) {
-                               console.error('🎤 Safari permission still denied:', error)
-                               alert('Permission refusée. Veuillez autoriser le microphone dans les paramètres Safari.')
-                             }
-                           }}
-                           className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                         >
-                           🔄 Réessayer Safari
-                         </button>
-                         
-                         <button
-                           onClick={() => {
-                             console.log('🔍 Safari Debug Info:')
-                             console.log('- User Agent:', navigator.userAgent)
-                             console.log('- Speech Recognition Support:', 'webkitSpeechRecognition' in window)
-                             console.log('- Media Devices:', !!navigator.mediaDevices)
-                             console.log('- Current State:', { isListening, isVoiceActive, accumulatedTranscript })
-                             console.log('- Recognition Ref:', recognitionRef.current)
-                             alert('Debug info logged to console. Check browser console for details.')
-                           }}
-                           className="px-3 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                         >
-                           🔍 Debug Safari
-                         </button>
-                       </div>
-                     )}
-                   </div>
-                 )}
                 
                 {!isSpeaking && !isListening && !isProcessingVoice && (
-                  <div className="text-center text-gray-500">
-                    <Phone className="w-6 h-6 mx-auto mb-2" />
-                    <p className="text-sm">Mode conversation vocale actif</p>
+                  <div className="text-center text-gray-500 px-2">
+                    <Phone className="w-4 h-4 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2" />
+                    <p className="text-xs sm:text-sm">Mode conversation vocale actif</p>
                     <p className="text-xs">Parlez naturellement, je vous écoute</p>
                     {availableVoices.length > 0 && (
                       <p className="text-xs text-blue-500 mt-1">
