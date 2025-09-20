@@ -400,6 +400,75 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
   }
 
 
+  const processVoiceConversation = async (transcript: string) => {
+    if (isProcessingVoice) {
+      console.log('🎤 Already processing voice, skipping...')
+      return
+    }
+    
+    // Check if this is a duplicate of recent messages (last 5 messages)
+    const recentMessages = messages.slice(-5).filter(msg => msg.type === 'user')
+    const isDuplicate = recentMessages.some(msg => msg.content === transcript)
+    
+    if (isDuplicate) {
+      console.log('🎤 Duplicate message detected, skipping...', { transcript })
+      return
+    }
+    
+    setIsProcessingVoice(true)
+    console.log('🎤 Processing voice conversation:', transcript)
+    
+    try {
+      // Add user message
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: transcript,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, userMessage])
+
+      // Get ChatGPT response
+      const response = await fetch('/api/chatgpt-live', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: transcript,
+          recipe: recipe,
+          conversationHistory: messages
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la communication avec ChatGPT')
+      }
+
+      const data = await response.json()
+      
+      // Add assistant message
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: data.response,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, assistantMessage])
+
+      // Speak the response
+      speakText(data.response)
+
+    } catch (error) {
+      console.error('Erreur conversation vocale:', error)
+    } finally {
+      setIsProcessingVoice(false)
+      setLastProcessedTime(Date.now()) // Update last processed time
+      console.log('🎤 Voice processing completed')
+      
+      // No auto-restart - user must click Retalk manually
+    }
+  }
 
   const stopVoiceRecognition = () => {
     if (recognitionRef.current) {
@@ -719,43 +788,43 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[90vh] sm:h-[80vh] flex flex-col mx-2 sm:mx-0"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base">ChatGPT Live</h3>
-                <p className="text-xs sm:text-sm text-gray-500">Assistant culinaire</p>
+                <h3 className="font-semibold text-gray-900">ChatGPT Live</h3>
+                <p className="text-sm text-gray-500">Assistant culinaire</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={switchToMessageMode}
-                className={`px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 whitespace-nowrap ${
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                   chatMode === 'message' ? 'bg-blue-100 text-blue-600 border-2 border-blue-300' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 title="Mode message (texte)"
               >
-                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm font-medium">Message</span>
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">Message</span>
               </button>
               
               <button
                 onClick={switchToPhoneMode}
-                className={`px-2 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 whitespace-nowrap ${
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                   chatMode === 'phone' ? 'bg-green-100 text-green-600 border-2 border-green-300 animate-pulse' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
                 title="Mode téléphone (conversation vocale) - Pro"
               >
-                <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm font-medium">Phone</span>
-                <Crown className="w-2 h-2 sm:w-3 sm:h-3 text-yellow-500" />
+                <Phone className="w-4 h-4" />
+                <span className="text-sm font-medium">Phone</span>
+                <Crown className="w-3 h-3 text-yellow-500" />
               </button>
               
               {chatMode === 'phone' && (
@@ -780,7 +849,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <motion.div
                 key={message.id}
@@ -788,27 +857,27 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[80%] ${
+                <div className={`flex items-start space-x-2 max-w-[80%] ${
                   message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                 }`}>
-                  <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     message.type === 'user' 
                       ? 'bg-blue-500' 
                       : 'bg-gradient-to-r from-green-500 to-blue-500'
                   }`}>
                     {message.type === 'user' ? (
-                      <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                      <User className="w-4 h-4 text-white" />
                     ) : (
-                      <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                      <Bot className="w-4 h-4 text-white" />
                     )}
                   </div>
                   
-                  <div className={`px-3 sm:px-4 py-2 rounded-2xl ${
+                  <div className={`px-4 py-2 rounded-2xl ${
                     message.type === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-100 text-gray-900'
                   }`}>
-                    <p className="text-sm sm:text-base whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className="text-xs opacity-70 mt-1">
                       {message.timestamp.toLocaleTimeString()}
                     </p>
@@ -864,7 +933,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
             )}
             
             {chatMode === 'phone' && (
-              <div className="mt-2 sm:mt-4 flex flex-col items-center space-y-2 sm:space-y-3 p-2 sm:p-0">
+              <div className="mt-4 flex flex-col items-center space-y-3">
                 <div className="flex items-center space-x-4">
                   {isListening && (
                     <div className="flex items-center space-x-2 text-red-600">
@@ -887,9 +956,9 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 </div>
                 
                 {/* Safari-specific instructions */}
-                <div className="text-center text-xs sm:text-sm text-gray-600 bg-blue-50 p-2 sm:p-3 rounded-lg w-full">
+                <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                   <p className="font-medium mb-1">🎤 Mode vocal activé</p>
-                  <p className="text-xs sm:text-sm">
+                  <p>
                     {navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') 
                       ? 'Parlez maintenant - cliquez sur "Transcrire" quand vous avez fini'
                       : 'Parlez maintenant - votre voix sera transcrit et envoyée automatiquement'
@@ -905,14 +974,14 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 
                 {/* Show accumulated transcript for Safari */}
                 {(isListening || accumulatedTranscript) && (
-                  <div className="w-full bg-gray-50 p-2 sm:p-3 rounded-lg border">
-                    <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                  <div className="w-full max-w-md bg-gray-50 p-3 rounded-lg border">
+                    <p className="text-sm text-gray-600 mb-1">
                       {isListening 
                         ? (accumulatedTranscript ? 'Transcription en cours :' : 'Écoute en cours...')
                         : 'Transcription terminée :'
                       }
                     </p>
-                    <p className="text-sm sm:text-base text-gray-800 font-medium leading-relaxed">
+                    <p className="text-gray-800 font-medium">
                       {accumulatedTranscript || 'Parlez maintenant...'}
                     </p>
                     {isListening && !accumulatedTranscript && (
@@ -927,7 +996,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 
                 {/* Manual transcribe button for Safari */}
                 {accumulatedTranscript && (
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full">
+                  <div className="flex space-x-3">
                     <button
                       onClick={() => {
                         console.log('🎤 Manual transcribe triggered')
@@ -940,8 +1009,11 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                           console.log('🎤 Processing accumulated transcript:', accumulatedTranscript)
                           setInputMessage(accumulatedTranscript)
                           
-                          // Always use sendMessage for consistency
-                          sendMessage(accumulatedTranscript)
+                          if (chatMode === 'phone') {
+                            processVoiceConversation(accumulatedTranscript)
+                          } else {
+                            sendMessage(accumulatedTranscript)
+                          }
                           
                           // Clear transcript after processing
                           setAccumulatedTranscript('')
@@ -949,7 +1021,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                           console.log('🎤 No accumulated transcript to process')
                         }
                       }}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                      className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2 font-medium"
                     >
                       <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
                       <span>Transcrire</span>
@@ -961,7 +1033,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                         setAccumulatedTranscript('')
                         startVoiceRecognition()
                       }}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                      className="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2 font-medium"
                     >
                       <span>Recommencer</span>
                     </button>
@@ -969,10 +1041,10 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 )}
                 
                 {isSpeaking && (
-                  <div className="flex justify-center w-full">
+                  <div className="flex space-x-3">
                     <button
                       onClick={stopSpeaking}
-                      className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center space-x-2"
                     >
                       <div className="w-4 h-4 bg-white rounded-sm"></div>
                       <span>Stop</span>
@@ -981,7 +1053,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                 )}
                 
                  {!isSpeaking && !isListening && !isProcessingVoice && !accumulatedTranscript && (
-                   <div className="flex flex-col items-center space-y-2 w-full">
+                   <div className="flex flex-col items-center space-y-2">
                      <button
                        onClick={() => {
                          console.log('🎤 Starting voice recognition...')
@@ -999,7 +1071,7 @@ export default function ChatGPTLive({ recipe, isOpen, onClose }: ChatGPTLiveProp
                            startVoiceRecognition()
                          }, 100)
                        }}
-                       className="w-full sm:w-auto px-4 sm:px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2 font-medium text-sm sm:text-base"
+                       className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center space-x-2 font-medium"
                      >
                        <Mic className="w-4 h-4" />
                        <span>🎤 Parler</span>

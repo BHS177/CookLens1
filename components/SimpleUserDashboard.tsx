@@ -112,27 +112,6 @@ export default function SimpleUserDashboard() {
     recipe.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const formatDate = (timestamp: number) => {
-    if (!timestamp || isNaN(timestamp)) {
-      return 'N/A'
-    }
-    return new Date(timestamp * 1000).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const getDaysUntilExpiry = (timestamp: number) => {
-    if (!timestamp || isNaN(timestamp)) {
-      return 0
-    }
-    const now = new Date().getTime()
-    const expiry = new Date(timestamp * 1000).getTime()
-    const diffTime = expiry - now
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return Math.max(0, diffDays) // Ensure non-negative
-  }
 
   const handleCancelSubscription = async () => {
     if (!confirm('Are you sure you want to cancel your subscription? You will immediately lose access to Pro features.')) {
